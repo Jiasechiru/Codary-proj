@@ -1,0 +1,333 @@
+.page {
+  max-width: 100rem;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.smallIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.titleBlock {
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.requirementsCard {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}
+
+.requirementsTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.requirementsList {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.inlineCode {
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  background: var(--muted);
+}
+
+.layout {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.mainColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.editorCard {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: var(--card);
+}
+
+.editorToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--muted);
+}
+
+.fileName {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.toolbarActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.hintButton,
+.runButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.hintButton {
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
+}
+
+.hintButton:hover {
+  background: color-mix(in srgb, var(--warning) 20%, transparent);
+}
+
+.runButton {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.runButton:hover {
+  opacity: 0.9;
+}
+
+.editor {
+  width: 100%;
+  height: 20rem;
+  padding: 1rem;
+  border: none;
+  resize: none;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+}
+
+.editor:focus {
+  outline: none;
+}
+
+.resultCard {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+}
+
+.resultSuccess {
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+  color: var(--success);
+}
+
+.resultError {
+  background: color-mix(in srgb, var(--destructive) 10%, transparent);
+  border-color: color-mix(in srgb, var(--destructive) 30%, transparent);
+  color: var(--destructive);
+}
+
+.resultTitle {
+  margin: 0 0 0.25rem;
+  font-weight: 500;
+}
+
+.resultText {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.testCard {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}
+
+.testCases {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-family: "JetBrains Mono", "Courier New", monospace;
+}
+
+.testCase {
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background: var(--muted);
+}
+
+.testLabel {
+  color: var(--muted-foreground);
+}
+
+.assistantPanel {
+  width: 25rem;
+  flex-shrink: 0;
+  height: calc(100vh - 16rem);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}
+
+.assistantHeader {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.assistantIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.assistantMessages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.messageRow {
+  display: flex;
+}
+
+.messageLeft {
+  justify-content: flex-start;
+}
+
+.messageRight {
+  justify-content: flex-end;
+}
+
+.messageBubble {
+  max-width: 85%;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.assistantBubble {
+  background: var(--muted);
+}
+
+.userBubble {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.messageText {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.assistantFooter {
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.quickActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quickActionButton {
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  cursor: pointer;
+}
+
+.quickActionButton:hover {
+  opacity: 0.85;
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--input);
+  border-radius: 0.5rem;
+  background: var(--input-background);
+  font-size: 0.875rem;
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.sendButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  cursor: pointer;
+}
+
+.sendButton:hover {
+  opacity: 0.9;
+}

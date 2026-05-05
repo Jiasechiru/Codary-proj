@@ -1,0 +1,247 @@
+.page {
+  max-width: 56rem;
+  height: calc(100vh - 8rem);
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 1.5rem;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.titleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.titleIconWrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.titleIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.875rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.resetButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+  cursor: pointer;
+}
+
+.resetButton:hover {
+  opacity: 0.85;
+}
+
+.chatCard {
+  height: calc(100% - 6rem);
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.messagesArea {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.promptsSection {
+  margin-bottom: 1.5rem;
+}
+
+.helperText {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.promptsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.promptButton {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--background);
+  text-align: left;
+  cursor: pointer;
+}
+
+.promptButton:hover {
+  border-color: color-mix(in srgb, var(--primary) 50%, transparent);
+}
+
+.promptRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.promptIconWrap {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.promptTitle {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.promptText {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.messageRow {
+  display: flex;
+}
+
+.messageLeft {
+  justify-content: flex-start;
+}
+
+.messageRight {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
+
+.assistantBubble {
+  background: var(--muted);
+}
+
+.userBubble {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.bubbleHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.bubbleLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+.bubbleText {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--input);
+  background: var(--input-background);
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.sendButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  cursor: pointer;
+}
+
+.sendButton:hover {
+  opacity: 0.9;
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.disclaimer {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.smallIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+@media (min-width: 768px) {
+  .promptsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

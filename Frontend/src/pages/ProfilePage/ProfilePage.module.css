@@ -1,0 +1,203 @@
+.page {
+  max-width: 56rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+.avatar {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarText {
+  font-size: 1.875rem;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.profileInfo {
+  flex: 1;
+}
+
+.title {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0 0 1rem;
+  color: var(--muted-foreground);
+}
+
+.statsRow {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.statValue {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.mutedText {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.sectionTitle {
+  margin: 0 0 1.5rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.subHeading {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rowBetween {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+  font-size: 0.875rem;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--secondary);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--primary);
+}
+
+.milestoneRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  margin-top: 0.45rem;
+}
+
+.dotSuccess {
+  background: var(--success);
+}
+
+.dotPrimary {
+  background: var(--primary);
+}
+
+.dotWarning {
+  background: var(--warning);
+}
+
+.itemTitle {
+  margin: 0 0 0.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.timeText {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.achievementsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.achievementCard {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+}
+
+.achievementUnlocked {
+  background: var(--background);
+}
+
+.achievementLocked {
+  background: color-mix(in srgb, var(--muted) 50%, transparent);
+  opacity: 0.6;
+}
+
+.badgeIconWrap {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badgeUnlocked {
+  background: color-mix(in srgb, var(--warning) 10%, transparent);
+}
+
+.badgeLocked {
+  background: var(--muted);
+}
+
+.badgeIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .summaryGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .achievementsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

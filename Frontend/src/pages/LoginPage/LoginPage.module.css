@@ -1,0 +1,128 @@
+.page {
+  min-height: 100vh;
+  background: var(--background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1.5rem;
+}
+
+.container {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.logoContainer {
+  width: 2.5rem;
+  height: 2.5rem;
+  background: var(--primary);
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.brandText {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted-foreground);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 2rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 1rem;
+  background: var(--input-background);
+  border: 1px solid var(--input);
+  border-radius: 0.5rem;
+  color: var(--foreground);
+}
+
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.submitButton {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.submitButton:hover {
+  opacity: 0.9;
+}
+
+.footer {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.footerText {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.footerLink {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.footerLink:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,15 @@
+.page {
+  min-height: 100vh;
+  background: var(--background);
+}
+
+.layout {
+  display: flex;
+}
+
+.main {
+  flex: 1;
+  margin-top: 4rem;
+  padding: 2rem;
+  transition: margin-left 0.3s ease;
+}
