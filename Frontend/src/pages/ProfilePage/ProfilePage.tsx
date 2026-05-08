@@ -1,42 +1,96 @@
-import leader from "../../assets/Icons/leader.svg"
-import lightning from "../../assets/Icons/lightning.svg"
-import calendar from "../../assets/Icons/calendar.svg"
-import breaks from "../../assets/Icons/breaks.svg"
-import target from "../../assets/Icons/target.svg"
-import award from "../../assets/Icons/award.svg"
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
+import Leader from "../../assets/Icons/leader.svg?react";
+import Lightning from "../../assets/Icons/lightning.svg?react";
+import Calendar from "../../assets/Icons/calendar.svg?react";
+import Breaks from "../../assets/Icons/breaks.svg?react";
+import Target from "../../assets/Icons/target.svg?react";
+import Award from "../../assets/Icons/award.svg?react";
+import { getUserActivity, getUserProfile, type UserActivity, type UserProfile } from "../../services/users";
+import PageState from "../../components/PageState/PageState";
 import styles from "./ProfilePage.module.css";
 
-const achievements = [
-    { id: 1, title: "First Steps", description: "Completed your first task", icon: leader, unlocked: true },
-    { id: 2, title: "Fast Learner", description: "Completed 10 tasks in a week", icon: lightning, unlocked: true },
-    { id: 3, title: "Streak Master", description: "Maintained a 7-day streak", icon: calendar, unlocked: true },
-    { id: 4, title: "Code Warrior", description: "Completed 50 tasks", icon: breaks, unlocked: true },
-    { id: 5, title: "Perfect Score", description: "Got 100% on 5 tasks in a row", icon: target, unlocked: false },
-    { id: 6, title: "Dedicated", description: "Maintained a 30-day streak", icon: award, unlocked: false },
-];
+const achievementIcons = [Leader, Lightning, Calendar, Breaks, Target, Award];
+
+function getInitials(username: string) {
+    return username
+        .split(/[\s_.-]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .join("");
+}
+
+function formatTimeSpent(seconds: number) {
+    if (seconds < 3600) {
+        return `${Math.floor(seconds / 60)}m`;
+    }
+
+    return `${(seconds / 3600).toFixed(1)}h`;
+}
 
 const ProfilePage = () => {
+    const navigate = useNavigate();
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [activity, setActivity] = useState<UserActivity[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            setIsLoading(true);
+            setError("");
+
+            try {
+                const [profileData, activityData] = await Promise.all([getUserProfile(), getUserActivity()]);
+                setProfile(profileData);
+                setActivity(activityData);
+            } catch (requestError) {
+                const message = requestError instanceof Error ? requestError.message : "Failed to load profile";
+                setError(message);
+
+                if (message.toLowerCase().includes("unauthorized")) {
+                    navigate("/login");
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfileData();
+    }, [navigate]);
+
+    const recentActivity = useMemo(() => activity.slice(0, 3), [activity]);
+
+    if (isLoading) {
+        return <PageState kind="loading" title="Loading profile..." />;
+    }
+
+    if (error || !profile) {
+        return <PageState kind="error" title={error || "Profile is unavailable."} />;
+    }
+
     return (
         <div className={styles.page}>
             <div className={styles.card}>
                 <div className={styles.profileHeader}>
                     <div className={styles.avatar}>
-                        <span className={styles.avatarText}>AJ</span>
+                        <span className={styles.avatarText}>{getInitials(profile.username)}</span>
                     </div>
                     <div className={styles.profileInfo}>
-                        <h1 className={styles.title}>Alex Johnson</h1>
-                        <p className={styles.subtitle}>alex.johnson@email.com</p>
+                        <h1 className={styles.title}>{profile.username}</h1>
+                        <p className={styles.subtitle}>@{profile.username}</p>
                         <div className={styles.statsRow}>
                             <div>
-                                <p className={styles.statValue}>47</p>
+                                <p className={styles.statValue}>{profile.completedTasks}</p>
                                 <p className={styles.mutedText}>Tasks Completed</p>
                             </div>
                             <div>
-                                <p className={styles.statValue}>24h</p>
+                                <p className={styles.statValue}>{formatTimeSpent(profile.totalTimeSpentSeconds)}</p>
                                 <p className={styles.mutedText}>Time Spent</p>
                             </div>
                             <div>
-                                <p className={styles.statValue}>12</p>
+                                <p className={styles.statValue}>{profile.daysStreak}</p>
                                 <p className={styles.mutedText}>Day Streak</p>
                             </div>
                         </div>
@@ -48,61 +102,55 @@ const ProfilePage = () => {
                 <h2 className={styles.sectionTitle}>Learning Summary</h2>
                 <div className={styles.summaryGrid}>
                     <div>
-                        <h3 className={styles.subHeading}>Skills</h3>
+                        <h3 className={styles.subHeading}>Current Progress</h3>
                         <div className={styles.stack}>
                             <div>
                                 <div className={styles.rowBetween}>
-                                    <span>JavaScript</span>
-                                    <span className={styles.mutedText}>Advanced</span>
+                                    <span>Level</span>
+                                    <span className={styles.mutedText}>{profile.level}</span>
                                 </div>
                                 <div className={styles.progressTrack}>
-                                    <div className={styles.progressFill} style={{ width: "85%" }}></div>
+                                    <div className={styles.progressFill} style={{ width: `${Math.min(profile.completedTasks * 2, 100)}%` }}></div>
                                 </div>
                             </div>
                             <div>
                                 <div className={styles.rowBetween}>
-                                    <span>React</span>
-                                    <span className={styles.mutedText}>Intermediate</span>
+                                    <span>Points</span>
+                                    <span className={styles.mutedText}>{profile.totalPoints}</span>
                                 </div>
                                 <div className={styles.progressTrack}>
-                                    <div className={styles.progressFill} style={{ width: "60%" }}></div>
+                                    <div className={styles.progressFill} style={{ width: `${Math.min(profile.totalPoints / 20, 100)}%` }}></div>
                                 </div>
                             </div>
                             <div>
                                 <div className={styles.rowBetween}>
-                                    <span>TypeScript</span>
-                                    <span className={styles.mutedText}>Beginner</span>
+                                    <span>Consistency</span>
+                                    <span className={styles.mutedText}>{profile.daysStreak} day streak</span>
                                 </div>
                                 <div className={styles.progressTrack}>
-                                    <div className={styles.progressFill} style={{ width: "30%" }}></div>
+                                    <div className={styles.progressFill} style={{ width: `${Math.min(profile.daysStreak * 5, 100)}%` }}></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <h3 className={styles.subHeading}>Recent Milestones</h3>
+                        <h3 className={styles.subHeading}>Recent Activity</h3>
                         <div className={styles.stack}>
-                            <div className={styles.milestoneRow}>
-                                <div className={`${styles.dot} ${styles.dotSuccess}`}></div>
-                                <div>
-                                    <p className={styles.itemTitle}>Completed JavaScript Basics</p>
-                                    <p className={styles.timeText}>3 days ago</p>
-                                </div>
-                            </div>
-                            <div className={styles.milestoneRow}>
-                                <div className={`${styles.dot} ${styles.dotPrimary}`}></div>
-                                <div>
-                                    <p className={styles.itemTitle}>Started React Course</p>
-                                    <p className={styles.timeText}>1 week ago</p>
-                                </div>
-                            </div>
-                            <div className={styles.milestoneRow}>
-                                <div className={`${styles.dot} ${styles.dotWarning}`}></div>
-                                <div>
-                                    <p className={styles.itemTitle}>Reached 1000 Points</p>
-                                    <p className={styles.timeText}>2 weeks ago</p>
-                                </div>
-                            </div>
+                            {recentActivity.length > 0 ? (
+                                recentActivity.map((entry, index) => (
+                                    <div className={styles.milestoneRow} key={entry.id}>
+                                        <div
+                                            className={`${styles.dot} ${index % 3 === 0 ? styles.dotSuccess : index % 3 === 1 ? styles.dotPrimary : styles.dotWarning}`}
+                                        ></div>
+                                        <div>
+                                            <p className={styles.itemTitle}>Spent {formatTimeSpent(entry.timeSpentSeconds)} learning</p>
+                                            <p className={styles.timeText}>{new Date(entry.date).toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className={styles.mutedText}>No activity yet.</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -111,18 +159,18 @@ const ProfilePage = () => {
             <div className={styles.card}>
                 <h2 className={styles.sectionTitle}>Achievements</h2>
                 <div className={styles.achievementsGrid}>
-                    {achievements.map((achievement) => {
-                        const Icon = achievement.icon;
+                    {profile.achievements.length > 0 ? profile.achievements.map((achievement, index) => {
+                        const Icon = achievementIcons[index % achievementIcons.length];
                         return (
                             <div
                                 key={achievement.id}
-                                className={`${styles.achievementCard} ${achievement.unlocked ? styles.achievementUnlocked : styles.achievementLocked}`}
+                                className={`${styles.achievementCard} ${styles.achievementUnlocked}`}
                             >
                                 <div className={styles.milestoneRow}>
                                     <div
-                                        className={`${styles.badgeIconWrap} ${achievement.unlocked ? styles.badgeUnlocked : styles.badgeLocked}`}
+                                        className={`${styles.badgeIconWrap} ${styles.badgeUnlocked}`}
                                     >
-                                        <img src={Icon} className={styles.badgeIcon} />
+                                        <Icon className={styles.badgeIcon} />
                                     </div>
                                     <div>
                                         <h3 className={styles.itemTitle}>{achievement.title}</h3>
@@ -131,7 +179,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
                         );
-                    })}
+                    }) : <p className={styles.mutedText}>No achievements unlocked yet.</p>}
                 </div>
             </div>
         </div>

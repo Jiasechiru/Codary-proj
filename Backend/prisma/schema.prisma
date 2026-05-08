@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int                @id @default(autoincrement())
+  username         String             @unique
+  passwordHash     String             @map("password_hash")
+  totalPoints      Int                @default(0) @map("total_points")
+  level            String             @default("beginner")
+  daysStreak       Int                @default(0) @map("days_streak")
+  attempts         Attempt[]
+  taskProgress     UserTaskProgress[]
+  quizProgress     UserQuizProgress[]
+  moduleProgress   UserModuleProgress[]
+  courseProgress   UserProgress[]
+  globalAiChats    GlobalAIChat[]
+  taskAiChats      TaskAIChat[]
+  settings         UserSettings?
+  pointsHistory    PointsHistory[]
+  activityHistory  ActivityHistory[]
+  achievements     UserAchievement[]
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model CourseGroup {
+  id          Int      @id @default(autoincrement())
+  title       String
+  type        String
+  description String?
+  courses     Course[]
+
+  @@map("course_groups")
+}
+
+model Course {
+  id             Int            @id @default(autoincrement())
+  courseGroupId  Int            @map("course_group_id")
+  title          String
+  description    String?
+  language       String
+  level          String
+  points         Int            @default(0)
+  courseGroup    CourseGroup    @relation(fields: [courseGroupId], references: [id], onDelete: Cascade)
+  modules        Module[]
+  userProgress   UserProgress[]
+
+  @@map("courses")
+}
+
+model Module {
+  id             Int                  @id @default(autoincrement())
+  courseId       Int                  @map("course_id")
+  title          String
+  orderIndex     Int                  @map("order_index")
+  course         Course               @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  theory         Theory?
+  tasks          Task[]
+  quizzes        Quiz[]
+  userProgress   UserModuleProgress[]
+
+  @@map("modules")
+}
+
+model Theory {
+  id        Int    @id @default(autoincrement())
+  moduleId  Int    @unique @map("module_id")
+  content   String
+  module    Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@map("theories")
+}
+
+model Task {
+  id               Int                @id @default(autoincrement())
+  moduleId         Int                @map("module_id")
+  title            String
+  description      String
+  starterCode      String             @map("starter_code")
+  solutionCode     String             @map("solution_code")
+  difficulty       String
+  module           Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  codeTests        CodeTest[]
+  attempts         Attempt[]
+  userProgress     UserTaskProgress[]
+  taskAiChats      TaskAIChat[]
+
+  @@map("tasks")
+}
+
+model CodeTest {
+  id             Int    @id @default(autoincrement())
+  taskId         Int    @map("task_id")
+  input          String
+  expectedOutput String @map("expected_output")
+  task           Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("code_tests")
+}
+
+model Quiz {
+  id              Int                @id @default(autoincrement())
+  moduleId        Int                @map("module_id")
+  question        String
+  answerVariants  Json               @map("answer_variants")
+  correctAnswer   String             @map("correct_answer")
+  module          Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  userProgress    UserQuizProgress[]
+
+  @@map("quizzes")
+}
+
+model Attempt {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  taskId      Int      @map("task_id")
+  code        String
+  isCorrect   Boolean  @default(false) @map("is_correct")
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("attempts")
+}
+
+model UserTaskProgress {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  taskId       Int       @map("task_id")
+  isCompleted  Boolean   @default(false) @map("is_completed")
+  completedAt  DateTime? @map("completed_at")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task         Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, taskId])
+  @@map("user_task_progress")
+}
+
+model UserQuizProgress {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  quizId       Int      @map("quiz_id")
+  isCompleted  Boolean  @default(false) @map("is_completed")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quiz         Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, quizId])
+  @@map("user_quiz_progress")
+}
+
+model UserModuleProgress {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  moduleId     Int      @map("module_id")
+  isCompleted  Boolean  @default(false) @map("is_completed")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  module       Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, moduleId])
+  @@map("user_module_progress")
+}
+
+model UserProgress {
+  id          Int       @id @default(autoincrement())
+  userId      Int       @map("user_id")
+  courseId    Int       @map("course_id")
+  percentage  Float     @default(0)
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("user_progress")
+}
+
+model GlobalAIChat {
+  id        Int               @id @default(autoincrement())
+  userId    Int               @map("user_id")
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  GlobalAIMessage[]
+
+  @@map("global_ai_chats")
+}
+
+model GlobalAIMessage {
+  id         Int          @id @default(autoincrement())
+  chatId      Int         @map("chat_id")
+  role        String
+  message     String
+  createdAt   DateTime    @default(now()) @map("created_at")
+  chat        GlobalAIChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@map("global_ai_messages")
+}
+
+model TaskAIChat {
+  id        Int             @id @default(autoincrement())
+  userId    Int             @map("user_id")
+  taskId    Int             @map("task_id")
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task      Task            @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  messages  TaskAIMessage[]
+
+  @@unique([userId, taskId])
+  @@map("task_ai_chats")
+}
+
+model TaskAIMessage {
+  id         Int        @id @default(autoincrement())
+  chatId     Int        @map("chat_id")
+  role       String
+  message    String
+  createdAt  DateTime   @default(now()) @map("created_at")
+  chat       TaskAIChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@map("task_ai_messages")
+}
+
+model UserSettings {
+  id        Int    @id @default(autoincrement())
+  userId    Int    @unique @map("user_id")
+  settings  Json
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+model PointsHistory {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  delta      Int
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("points_history")
+}
+
+model ActivityHistory {
+  id               Int      @id @default(autoincrement())
+  userId           Int      @map("user_id")
+  date             DateTime
+  timeSpentSeconds Int      @map("time_spent_seconds")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_history")
+}
+
+model Achievement {
+  id            Int               @id @default(autoincrement())
+  title         String
+  description   String
+  users         UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id             Int         @id @default(autoincrement())
+  userId         Int         @map("user_id")
+  achievementId  Int         @map("achievement_id")
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement    Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}

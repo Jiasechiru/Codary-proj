@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { Routes, Route, useNavigate } from "react-router-dom"
+import { Routes, Route } from "react-router-dom"
 import Layout from './components/Layout/Layout'
+import AuthGuard from './components/AuthGuard/AuthGuard'
 import LandingPage from './pages/LandingPage/LandingPage'
 import RegPage from './pages/RegPage/RegPage'
 import LoginPage from './pages/LoginPage/LoginPage'
@@ -18,8 +18,6 @@ import TaskPage from './pages/TaskPage/TaskPage'
 import "./styles/Theme.css"
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <Layout>
       <Routes>
@@ -27,7 +25,7 @@ function App() {
         <Route path="/register" element={<RegPage />} />
         <Route path="/login" element={<LoginPage />} />
 
-        <Route path="/app" element={<AppLayout />} >
+        <Route path="/app" element={<AuthGuard><AppLayout /></AuthGuard>} >
           <Route index element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<SettingsPage />} />

@@ -1,27 +1,81 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-import target from "../../assets/Icons/target.svg"
-import lightning from "../../assets/Icons/lightning.svg"
-import leader from "../../assets/Icons/leader.svg"
+import { useEffect, useMemo, useState } from "react";
+import Target from "../../assets/Icons/target.svg?react"
+import Lightning from "../../assets/Icons/lightning.svg?react"
+import Leader from "../../assets/Icons/leader.svg?react"
+import { getCourses } from "../../services/courses";
+import { getProgressOverview } from "../../services/progress";
+import { getUserActivity, getUserProfile } from "../../services/users";
+import PageState from "../../components/PageState/PageState";
 import styles from "./ProgressPage.module.css";
 
-const weeklyData = [
-    { day: "Mon", tasks: 3 },
-    { day: "Tue", tasks: 5 },
-    { day: "Wed", tasks: 4 },
-    { day: "Thu", tasks: 6 },
-    { day: "Fri", tasks: 7 },
-    { day: "Sat", tasks: 2 },
-    { day: "Sun", tasks: 4 },
-];
-
-const progressData = [
-    { month: "Jan", completed: 12 },
-    { month: "Feb", completed: 18 },
-    { month: "Mar", completed: 25 },
-    { month: "Apr", completed: 31 },
-];
-
 const ProgressPage = () => {
+    const [successRate, setSuccessRate] = useState(0);
+    const [streak, setStreak] = useState(0);
+    const [totalPoints, setTotalPoints] = useState(0);
+    const [coursesProgress, setCoursesProgress] = useState<Array<{ courseId: number; title: string; percentage: number }>>([]);
+    const [weeklyData, setWeeklyData] = useState<Array<{ day: string; tasks: number }>>([]);
+    const [progressData, setProgressData] = useState<Array<{ month: string; completed: number }>>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const loadProgress = async () => {
+            try {
+                const [overview, profile, activity, courses] = await Promise.all([
+                    getProgressOverview(),
+                    getUserProfile(),
+                    getUserActivity(),
+                    getCourses(),
+                ]);
+                const completedTasks = overview.tasks.filter((task) => task.isCompleted).length;
+                const totalTasks = overview.tasks.length || 1;
+                setSuccessRate(Math.round((completedTasks / totalTasks) * 100));
+                setStreak(profile?.daysStreak || 0);
+                setTotalPoints(profile?.totalPoints || 0);
+
+                const titleMap = new Map(courses.map((course) => [course.id, course.title]));
+                setCoursesProgress(
+                    overview.courses.map((item) => ({
+                        courseId: item.courseId,
+                        title: titleMap.get(item.courseId) || `Course #${item.courseId}`,
+                        percentage: item.percentage,
+                    }))
+                );
+
+                const lastWeek = activity.slice(0, 7).reverse();
+                setWeeklyData(
+                    lastWeek.map((item) => ({
+                        day: new Date(item.date).toLocaleDateString(undefined, { weekday: "short" }),
+                        tasks: Math.max(1, Math.round(item.timeSpentSeconds / 1800)),
+                    }))
+                );
+
+                setProgressData(
+                    activity
+                        .slice(0, 12)
+                        .reverse()
+                        .map((item, idx) => ({
+                            month: new Date(item.date).toLocaleDateString(undefined, { month: "short" }),
+                            completed: idx + 1,
+                        }))
+                );
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadProgress();
+    }, []);
+
+    const rankedCourses = useMemo(
+        () => coursesProgress.slice().sort((a, b) => b.percentage - a.percentage).slice(0, 5),
+        [coursesProgress]
+    );
+
+    if (isLoading) {
+        return <PageState kind="loading" title="Loading progress..." />;
+    }
+
     return (
         <div className={styles.page}>
             <div className={styles.header}>
@@ -33,26 +87,26 @@ const ProgressPage = () => {
                 <div className={styles.card}>
                     <div className={styles.statRow}>
                         <div className={`${styles.iconWrap} ${styles.successTint}`}>
-                            <img src={target} className={styles.icon} />
+                            <Target className={styles.icon} />
                         </div>
                         <div>
                             <p className={styles.mutedText}>Success Rate</p>
-                            <p className={styles.statValue}>87%</p>
+                            <p className={styles.statValue}>{successRate}%</p>
                         </div>
                     </div>
                     <div className={styles.progressTrack}>
-                        <div className={styles.successProgress} style={{ width: "87%" }}></div>
+                        <div className={styles.successProgress} style={{ width: `${successRate}%` }}></div>
                     </div>
                 </div>
 
                 <div className={styles.card}>
                     <div className={styles.statRow}>
                         <div className={`${styles.iconWrap} ${styles.primaryTint}`}>
-                            <img src={lightning} className={styles.icon} />
+                            <Lightning className={styles.icon} />
                         </div>
                         <div>
                             <p className={styles.mutedText}>Current Streak</p>
-                            <p className={styles.statValue}>12 days</p>
+                            <p className={styles.statValue}>{streak} days</p>
                         </div>
                     </div>
                     <p className={styles.mutedText}>Keep it up! 🔥</p>
@@ -61,14 +115,14 @@ const ProgressPage = () => {
                 <div className={styles.card}>
                     <div className={styles.statRow}>
                         <div className={`${styles.iconWrap} ${styles.warningTint}`}>
-                            <img src={leader} className={styles.icon} />
+                            <Leader className={styles.icon} />
                         </div>
                         <div>
                             <p className={styles.mutedText}>Total Points</p>
-                            <p className={styles.statValue}>2,450</p>
+                            <p className={styles.statValue}>{totalPoints.toLocaleString()}</p>
                         </div>
                     </div>
-                    <p className={styles.mutedText}>Top 15% of learners</p>
+                    <p className={styles.mutedText}>All earned in real tasks and quizzes</p>
                 </div>
             </div>
 
@@ -115,42 +169,17 @@ const ProgressPage = () => {
             <div className={styles.card}>
                 <h2 className={styles.sectionTitle}>Course Progress</h2>
                 <div className={styles.stack}>
-                    <div>
-                        <div className={styles.rowBetween}>
-                            <span className={styles.itemLabel}>JavaScript Basics</span>
-                            <span className={styles.mutedText}>80%</span>
+                    {rankedCourses.length > 0 ? rankedCourses.map((course) => (
+                        <div key={course.courseId}>
+                            <div className={styles.rowBetween}>
+                                <span className={styles.itemLabel}>{course.title}</span>
+                                <span className={styles.mutedText}>{course.percentage.toFixed(0)}%</span>
+                            </div>
+                            <div className={styles.progressTrack}>
+                                <div className={styles.primaryProgress} style={{ width: `${course.percentage}%` }}></div>
+                            </div>
                         </div>
-                        <div className={styles.progressTrack}>
-                            <div className={styles.primaryProgress} style={{ width: "80%" }}></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div className={styles.rowBetween}>
-                            <span className={styles.itemLabel}>JavaScript Intermediate</span>
-                            <span className={styles.mutedText}>45%</span>
-                        </div>
-                        <div className={styles.progressTrack}>
-                            <div className={styles.primaryProgress} style={{ width: "45%" }}></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div className={styles.rowBetween}>
-                            <span className={styles.itemLabel}>React Basics</span>
-                            <span className={styles.mutedText}>30%</span>
-                        </div>
-                        <div className={styles.progressTrack}>
-                            <div className={styles.primaryProgress} style={{ width: "30%" }}></div>
-                        </div>
-                    </div>
-                    <div>
-                        <div className={styles.rowBetween}>
-                            <span className={styles.itemLabel}>TypeScript Fundamentals</span>
-                            <span className={styles.mutedText}>0%</span>
-                        </div>
-                        <div className={styles.progressTrack}>
-                            <div className={styles.primaryProgress} style={{ width: "0%" }}></div>
-                        </div>
-                    </div>
+                    )) : <p className={styles.mutedText}>No course progress yet.</p>}
                 </div>
             </div>
         </div>

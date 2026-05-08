@@ -50,6 +50,11 @@
   color: var(--muted-foreground);
 }
 
+.errorText {
+  margin: 0;
+  color: #ef4444;
+}
+
 .statsRow {
   display: flex;
   gap: 1.5rem;

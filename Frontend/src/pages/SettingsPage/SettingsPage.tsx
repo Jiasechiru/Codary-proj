@@ -1,17 +1,68 @@
-import { useState } from "react";
-import moon from "../../assets/Icons/moon.svg"
-import sun from "../../assets/Icons/sun.svg"
+import { useEffect, useState } from "react";
+import Moon from "../../assets/Icons/moon.svg?react"
+import Sun from "../../assets/Icons/sun.svg?react"
+import { getSettings, updateSettings } from "../../services/settings";
+import PageState from "../../components/PageState/PageState";
 import styles from "./SettingsPage.module.css";
 
 const SettingsPage = () => {
     const [aiEnabled, setAiEnabled] = useState(true);
     const [notifications, setNotifications] = useState(true);
     const [darkMode, setDarkMode] = useState(false);
+    const [autoSuggestions, setAutoSuggestions] = useState(true);
+    const [dailyReminders, setDailyReminders] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const toggleDarkMode = () => {
-        setDarkMode(!darkMode);
-        document.documentElement.classList.toggle("dark");
+    useEffect(() => {
+        const loadSettings = async () => {
+            try {
+                const response = await getSettings();
+                const settings = response?.settings || {};
+                setAiEnabled(settings.aiEnabled ?? true);
+                setNotifications(settings.notifications ?? true);
+                setDarkMode((settings.theme ?? "light") === "dark");
+                setAutoSuggestions(settings.autoSuggestions ?? true);
+                setDailyReminders(settings.dailyReminders ?? true);
+            } catch (_error) {
+                // Keep defaults when loading fails.
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadSettings();
+    }, []);
+
+    const saveSettings = async (next: {
+        aiEnabled?: boolean;
+        notifications?: boolean;
+        darkMode?: boolean;
+        autoSuggestions?: boolean;
+        dailyReminders?: boolean;
+    }) => {
+        try {
+            await updateSettings({
+                aiEnabled: next.aiEnabled ?? aiEnabled,
+                notifications: next.notifications ?? notifications,
+                theme: (next.darkMode ?? darkMode) ? "dark" : "light",
+                autoSuggestions: next.autoSuggestions ?? autoSuggestions,
+                dailyReminders: next.dailyReminders ?? dailyReminders,
+            });
+        } catch (_error) {
+            // Ignore save errors silently for now.
+        }
     };
+
+    const toggleDarkMode = async () => {
+        const nextDark = !darkMode;
+        setDarkMode(nextDark);
+        document.documentElement.classList.toggle("dark", nextDark);
+        await saveSettings({ darkMode: nextDark });
+    };
+
+    if (isLoading) {
+        return <PageState kind="loading" title="Loading settings..." />;
+    }
 
     return (
         <div className={styles.page}>
@@ -32,7 +83,11 @@ const SettingsPage = () => {
                                 </p>
                             </div>
                             <button
-                                onClick={() => setAiEnabled(!aiEnabled)}
+                                onClick={async () => {
+                                    const next = !aiEnabled;
+                                    setAiEnabled(next);
+                                    await saveSettings({ aiEnabled: next });
+                                }}
                                 className={`${styles.switch} ${aiEnabled ? styles.switchEnabled : styles.switchDisabled}`}
                             >
                                 <div className={`${styles.switchThumb} ${aiEnabled ? styles.switchThumbOn : ""}`}></div>
@@ -46,9 +101,14 @@ const SettingsPage = () => {
                                 </p>
                             </div>
                             <button
-                                className={`${styles.switch} ${aiEnabled ? styles.switchEnabled : styles.switchDisabled}`}
+                                onClick={async () => {
+                                    const next = !autoSuggestions;
+                                    setAutoSuggestions(next);
+                                    await saveSettings({ autoSuggestions: next });
+                                }}
+                                className={`${styles.switch} ${autoSuggestions ? styles.switchEnabled : styles.switchDisabled}`}
                             >
-                                <div className={`${styles.switchThumb} ${aiEnabled ? styles.switchThumbOn : ""}`}></div>
+                                <div className={`${styles.switchThumb} ${autoSuggestions ? styles.switchThumbOn : ""}`}></div>
                             </button>
                         </div>
                     </div>
@@ -69,9 +129,9 @@ const SettingsPage = () => {
                         >
                             <div className={`${styles.switchThumb} ${styles.switchThumbContent} ${darkMode ? styles.switchThumbOn : ""}`}>
                                 {darkMode ? (
-                                    <img src={moon} className={styles.switchIcon} />
+                                    <Moon className={styles.switchIcon} />
                                 ) : (
-                                    <img src={sun} className={styles.switchIcon} />
+                                    <Sun className={styles.switchIcon} />
                                 )}
                             </div>
                         </button>
@@ -89,7 +149,11 @@ const SettingsPage = () => {
                                 </p>
                             </div>
                             <button
-                                onClick={() => setNotifications(!notifications)}
+                                onClick={async () => {
+                                    const next = !notifications;
+                                    setNotifications(next);
+                                    await saveSettings({ notifications: next });
+                                }}
                                 className={`${styles.switch} ${notifications ? styles.switchEnabled : styles.switchDisabled}`}
                             >
                                 <div className={`${styles.switchThumb} ${notifications ? styles.switchThumbOn : ""}`}></div>
@@ -103,9 +167,14 @@ const SettingsPage = () => {
                                 </p>
                             </div>
                             <button
-                                className={`${styles.switch} ${notifications ? styles.switchEnabled : styles.switchDisabled}`}
+                                onClick={async () => {
+                                    const next = !dailyReminders;
+                                    setDailyReminders(next);
+                                    await saveSettings({ dailyReminders: next });
+                                }}
+                                className={`${styles.switch} ${dailyReminders ? styles.switchEnabled : styles.switchDisabled}`}
                             >
-                                <div className={`${styles.switchThumb} ${notifications ? styles.switchThumbOn : ""}`}></div>
+                                <div className={`${styles.switchThumb} ${dailyReminders ? styles.switchThumbOn : ""}`}></div>
                             </button>
                         </div>
                     </div>

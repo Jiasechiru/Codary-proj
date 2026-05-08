@@ -1,38 +1,68 @@
-import crown from "../../assets/Icons/crown.svg"
-import medal from "../../assets/Icons/medal.svg"
-import leader from "../../assets/Icons/leader.svg"
-import progress from "../../assets/Icons/progress.svg"
-import award from "../../assets/Icons/award.svg"
+import Crown from "../../assets/Icons/crown.svg?react"
+import Medal from "../../assets/Icons/medal.svg?react"
+import Leader from "../../assets/Icons/leader.svg?react"
+import Progress from "../../assets/Icons/progress.svg?react"
+import Award from "../../assets/Icons/award.svg?react"
+import { useEffect, useMemo, useState } from "react";
+import { getLeaderboard, type LeaderboardEntry } from "../../services/leaderboard";
+import { me } from "../../services/auth";
+import PageState from "../../components/PageState/PageState";
 import styles from "./LeaderboardPage.module.css";
 
-
-const leaderboardData = [
-    { rank: 1, name: "Sarah Chen", avatar: "SC", points: 4850, tasksCompleted: 127, streak: 45 },
-    { rank: 2, name: "Marcus Rodriguez", avatar: "MR", points: 4520, tasksCompleted: 115, streak: 38 },
-    { rank: 3, name: "Emma Watson", avatar: "EW", points: 4210, tasksCompleted: 108, streak: 42 },
-    { rank: 4, name: "James Kim", avatar: "JK", points: 3980, tasksCompleted: 102, streak: 29 },
-    { rank: 5, name: "Olivia Martinez", avatar: "OM", points: 3750, tasksCompleted: 96, streak: 35 },
-    { rank: 6, name: "Liam Johnson", avatar: "LJ", points: 3420, tasksCompleted: 89, streak: 21 },
-    { rank: 7, name: "Sophia Lee", avatar: "SL", points: 3180, tasksCompleted: 84, streak: 28 },
-    { rank: 8, name: "Noah Patel", avatar: "NP", points: 2950, tasksCompleted: 78, streak: 18 },
-    { rank: 9, name: "Ava Brown", avatar: "AB", points: 2680, tasksCompleted: 71, streak: 15 },
-    { rank: 10, name: "You (Alex)", avatar: "AJ", points: 2450, tasksCompleted: 47, streak: 12, isCurrentUser: true },
-];
+const getInitials = (name: string) =>
+    name
+        .split(/[\s_.-]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase() ?? "")
+        .join("");
 
 const getRankIcon = (rank: number) => {
-    if (rank === 1) return { icon: crown, iconClass: styles.rankIconGold, bgClass: styles.rankBadgeGold };
-    if (rank === 2) return { icon: medal, iconClass: styles.rankIconSilver, bgClass: styles.rankBadgeSilver };
-    if (rank === 3) return { icon: medal, iconClass: styles.rankIconBronze, bgClass: styles.rankBadgeBronze };
+    if (rank === 1) return { icon: Crown, iconClass: styles.rankIconGold, bgClass: styles.rankBadgeGold };
+    if (rank === 2) return { icon: Medal, iconClass: styles.rankIconSilver, bgClass: styles.rankBadgeSilver };
+    if (rank === 3) return { icon: Medal, iconClass: styles.rankIconBronze, bgClass: styles.rankBadgeBronze };
     return null;
 };
 
 const LeaderboardPage = () => {
+    const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+    const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [board, auth] = await Promise.all([getLeaderboard(), me()]);
+                setEntries(board);
+                setCurrentUserId(auth.user.id);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    const currentRank = useMemo(
+        () => entries.findIndex((item) => item.id === currentUserId) + 1,
+        [entries, currentUserId]
+    );
+    const currentPoints = entries.find((item) => item.id === currentUserId)?.totalPoints || 0;
+    const nextPoints =
+        currentRank > 1 && currentRank <= entries.length
+            ? Math.max(entries[currentRank - 2].totalPoints - currentPoints + 1, 0)
+            : 0;
+
+    if (isLoading) {
+        return <PageState kind="loading" title="Loading leaderboard..." />;
+    }
+
     return (
         <div className={styles.page}>
             <div className={styles.header}>
                 <div className={styles.headerRow}>
                     <div className={styles.headerIconWrap}>
-                        <img src={leader} className={styles.headerIcon} />
+                        <Leader className={styles.headerIcon} />
                     </div>
                     <div>
                         <h1 className={styles.title}>Leaderboard</h1>
@@ -45,40 +75,42 @@ const LeaderboardPage = () => {
                 <div className={styles.card}>
                     <div className={styles.statRow}>
                         <div className={`${styles.statIconWrap} ${styles.primaryTint}`}>
-                            <img src={progress} className={styles.statIcon} />
+                            <Progress className={styles.statIcon} />
                         </div>
                         <div>
                             <p className={styles.mutedText}>Your Rank</p>
-                            <p className={styles.statValue}>#10</p>
+                            <p className={styles.statValue}>{currentRank > 0 ? `#${currentRank}` : "-"}</p>
                         </div>
                     </div>
-                    <p className={styles.mutedText}>Top 15% of learners</p>
+                    <p className={styles.mutedText}>
+                        {currentRank > 0 ? `Top ${Math.ceil((currentRank / entries.length) * 100)}% of learners` : "No rank yet"}
+                    </p>
                 </div>
 
                 <div className={styles.card}>
                     <div className={styles.statRow}>
                         <div className={`${styles.statIconWrap} ${styles.warningTint}`}>
-                            <img src={leader} className={styles.statIcon} />
+                            <Leader className={styles.statIcon} />
                         </div>
                         <div>
                             <p className={styles.mutedText}>Total Points</p>
-                            <p className={styles.statValue}>2,450</p>
+                            <p className={styles.statValue}>{currentPoints.toLocaleString()}</p>
                         </div>
                     </div>
-                    <p className={styles.successText}>+120 this week</p>
+                    <p className={styles.successText}>Keep learning to climb up</p>
                 </div>
 
                 <div className={styles.card}>
                     <div className={styles.statRow}>
                         <div className={`${styles.statIconWrap} ${styles.successTint}`}>
-                            <img src={award} className={styles.statIcon} />
+                            <Award className={styles.statIcon} />
                         </div>
                         <div>
                             <p className={styles.mutedText}>Next Rank</p>
-                            <p className={styles.statValue}>#9</p>
+                            <p className={styles.statValue}>{currentRank > 1 ? `#${currentRank - 1}` : "#1"}</p>
                         </div>
                     </div>
-                    <p className={styles.mutedText}>230 points to go</p>
+                    <p className={styles.mutedText}>{nextPoints} points to go</p>
                 </div>
             </div>
 
@@ -88,38 +120,40 @@ const LeaderboardPage = () => {
                 </div>
 
                 <div className={styles.tableBody}>
-                    {leaderboardData.map((user) => {
-                        const rankIcon = getRankIcon(user.rank);
+                    {entries.map((user, index) => {
+                        const rank = index + 1;
+                        const rankIcon = getRankIcon(rank);
+                        const isCurrentUser = user.id === currentUserId;
 
                         return (
                             <div
-                                key={user.rank}
-                                className={`${styles.tableRow} ${user.isCurrentUser ? styles.currentUserRow : styles.hoverRow}`}
+                                key={user.id}
+                                className={`${styles.tableRow} ${isCurrentUser ? styles.currentUserRow : styles.hoverRow}`}
                             >
                                 <div className={styles.rowContent}>
                                     <div className={styles.rankColumn}>
                                         {rankIcon ? (
                                             <div className={`${styles.rankBadge} ${rankIcon.bgClass}`}>
-                                                <img src={rankIcon.icon} className={`${styles.rankBadgeIcon} ${rankIcon.iconClass}`} />
+                                                <rankIcon.icon className={`${styles.rankBadgeIcon} ${rankIcon.iconClass}`} />
                                             </div>
                                         ) : (
-                                            <span className={styles.rankText}>#{user.rank}</span>
+                                            <span className={styles.rankText}>#{rank}</span>
                                         )}
                                     </div>
 
-                                    <div className={`${styles.avatar} ${user.isCurrentUser ? styles.avatarCurrent : styles.avatarDefault}`}>
-                                        <span className={styles.avatarText}>{user.avatar}</span>
+                                    <div className={`${styles.avatar} ${isCurrentUser ? styles.avatarCurrent : styles.avatarDefault}`}>
+                                        <span className={styles.avatarText}>{getInitials(user.username)}</span>
                                     </div>
 
                                     <div className={styles.userInfo}>
-                                        <p className={styles.userName}>{user.name}</p>
+                                        <p className={styles.userName}>{user.username}</p>
                                         <p className={styles.mutedText}>
-                                            {user.tasksCompleted} tasks • {user.streak} day streak
+                                            {user.level}
                                         </p>
                                     </div>
 
                                     <div className={styles.pointsBlock}>
-                                        <p className={styles.points}>{user.points.toLocaleString()}</p>
+                                        <p className={styles.points}>{user.totalPoints.toLocaleString()}</p>
                                         <p className={styles.pointsLabel}>points</p>
                                     </div>
                                 </div>

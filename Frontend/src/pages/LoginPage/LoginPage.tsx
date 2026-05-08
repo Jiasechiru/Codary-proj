@@ -1,16 +1,29 @@
 import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import LogoBlueBackground from "../../assets/Icons/LogoBlueBackground.svg"
+import { login } from "../../services/auth";
 import styles from "./LoginPage.module.css";
 
 const LoginPage = () => {
     const navigate = useNavigate();
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        navigate("/app");
+        setError("");
+        setIsSubmitting(true);
+
+        try {
+            await login(username, password);
+            navigate("/app");
+        } catch (requestError) {
+            setError(requestError instanceof Error ? requestError.message : "Failed to sign in");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -31,15 +44,15 @@ const LoginPage = () => {
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.field}>
                             <label htmlFor="email" className={styles.label}>
-                                Email
+                                Username
                             </label>
                             <input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                id="username"
+                                type="text"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 className={styles.input}
-                                placeholder="you@example.com"
+                                placeholder="your_username"
                                 required
                             />
                         </div>
@@ -59,11 +72,10 @@ const LoginPage = () => {
                             />
                         </div>
 
-                        <button
-                            type="submit"
-                            className={styles.submitButton}
-                        >
-                            Sign In
+                        {error ? <p className={styles.errorText}>{error}</p> : null}
+
+                        <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
+                            {isSubmitting ? "Signing In..." : "Sign In"}
                         </button>
                     </form>
 

@@ -1,11 +1,12 @@
-import { useState } from "react";
-import breaks from "../../assets/Icons/breaks.svg"
-import light from "../../assets/Icons/light.svg"
-import book from "../../assets/Icons/book.svg"
-import help from "../../assets/Icons/help.svg"
-import aistar from "../../assets/Icons/aistar.svg"
-import reset from "../../assets/Icons/reset.svg"
-import plain from "../../assets/Icons/plain.svg"
+import { useEffect, useState } from "react";
+import Breaks from "../../assets/Icons/breaks.svg?react"
+import Light from "../../assets/Icons/light.svg?react"
+import Book from "../../assets/Icons/book.svg?react"
+import Help from "../../assets/Icons/help.svg?react"
+import Aistar from "../../assets/Icons/aistar.svg?react"
+import Reset from "../../assets/Icons/reset.svg?react"
+import Plain from "../../assets/Icons/plain.svg?react"
+import { getGlobalChatHistory, sendGlobalMessage } from "../../services/ai";
 import styles from "./ChatPage.module.css";
 
 const initialMessage = {
@@ -16,59 +17,79 @@ const initialMessage = {
 const ChatPage = () => {
   const [messages, setMessages] = useState([initialMessage]);
   const [input, setInput] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const history = await getGlobalChatHistory();
+        if (history.length > 0) {
+          setMessages(history.map((item) => ({ role: item.role, content: item.message })));
+        }
+      } catch (_error) {
+        // Keep local initial message when history fails.
+      }
+    };
+
+    loadHistory();
+  }, []);
 
   const handleResetContext = () => {
     setMessages([initialMessage]);
     setInput("");
   };
 
-  const handleSendMessage = () => {
-    if (!input.trim()) return;
+  const sendMessage = async (rawMessage: string) => {
+    const userMessage = rawMessage.trim();
+    if (!userMessage) return;
 
-    const userMessage = input;
-    setMessages([
-      ...messages,
-      { role: "user", content: userMessage },
-      {
-        role: "assistant",
-        content: "That's a great question! Let me help you with that. I can explain concepts, provide examples, or guide you through solutions step by step.",
-      },
-    ]);
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setInput("");
+    setIsSending(true);
+
+    try {
+      const response = await sendGlobalMessage(userMessage);
+      setMessages((prev) => [...prev, { role: "assistant", content: response.response }]);
+    } catch (_error) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Failed to get AI response. Please try again." },
+      ]);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handleSendMessage = async () => {
+    await sendMessage(input);
   };
 
   const quickPrompts = [
     {
-      icon: breaks,
+      icon: Breaks,
       label: "Explain a concept",
       prompt: "Can you explain how JavaScript closures work?",
     },
     {
-      icon: light,
+      icon: Light,
       label: "Debug my code",
       prompt: "I'm getting an error in my code. Can you help me debug it?",
     },
     {
-      icon: book,
+      icon: Book,
       label: "Learn best practices",
       prompt: "What are the best practices for writing React components?",
     },
     {
-      icon: help,
+      icon: Help,
       label: "Ask anything",
       prompt: "How do I get started with TypeScript?",
     },
   ];
 
-  const handleQuickPrompt = (prompt: string) => {
-    setMessages([
-      ...messages,
-      { role: "user", content: prompt },
-      {
-        role: "assistant",
-        content: "Great question! Let me break this down for you with clear examples and explanations...",
-      },
-    ]);
+  const handleQuickPrompt = async (prompt: string) => {
+    if (isSending) return;
+    await sendMessage(prompt);
   };
 
   return (
@@ -77,7 +98,7 @@ const ChatPage = () => {
         <div className={styles.headerRow}>
           <div className={styles.titleWrap}>
             <div className={styles.titleIconWrap}>
-              <img src={aistar} className={styles.titleIcon} />
+              <Aistar className={styles.titleIcon} />
             </div>
             <div>
               <h1 className={styles.title}>AI Chat Assistant</h1>
@@ -88,7 +109,7 @@ const ChatPage = () => {
             onClick={handleResetContext}
             className={styles.resetButton}
           >
-            <img src={reset} className={styles.smallIcon} />
+            <Reset className={styles.smallIcon} />
             Reset Chat
           </button>
         </div>
@@ -110,7 +131,7 @@ const ChatPage = () => {
                     >
                       <div className={styles.promptRow}>
                         <div className={styles.promptIconWrap}>
-                          <img src={Icon} className={styles.smallIcon} />
+                          <Icon className={styles.smallIcon} />
                         </div>
                         <div>
                           <p className={styles.promptTitle}>{item.label}</p>
@@ -134,7 +155,7 @@ const ChatPage = () => {
               >
                 {msg.role === "assistant" && (
                   <div className={styles.bubbleHeader}>
-                    <img src={aistar} className={styles.smallIcon} />
+                    <Aistar className={styles.smallIcon} />
                     <span className={styles.bubbleLabel}>AI Assistant</span>
                   </div>
                 )}
@@ -156,10 +177,10 @@ const ChatPage = () => {
             />
             <button
               onClick={handleSendMessage}
-              disabled={!input.trim()}
+              disabled={!input.trim() || isSending}
               className={styles.sendButton}
             >
-              <img src={plain} className={styles.smallIcon} />
+              <Plain className={styles.smallIcon} />
               <span>Send</span>
             </button>
           </div>

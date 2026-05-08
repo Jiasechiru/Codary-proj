@@ -1,17 +1,29 @@
 import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import LogoBlueBackground from "../../assets/Icons/LogoBlueBackground.svg"
+import { register } from "../../services/auth";
 import styles from "./RegPage.module.css";
 
 const RegPage = () => {
     const navigate = useNavigate();
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        navigate("/app");
+        setError("");
+        setIsSubmitting(true);
+
+        try {
+            await register(username, password);
+            navigate("/app");
+        } catch (requestError) {
+            setError(requestError instanceof Error ? requestError.message : "Failed to create account");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -31,31 +43,16 @@ const RegPage = () => {
                 <div className={styles.card}>
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.field}>
-                            <label htmlFor="name" className={styles.label}>
-                                Full Name
+                            <label htmlFor="username" className={styles.label}>
+                                Username
                             </label>
                             <input
-                                id="name"
+                                id="username"
                                 type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
                                 className={styles.input}
-                                placeholder="John Doe"
-                                required
-                            />
-                        </div>
-
-                        <div className={styles.field}>
-                            <label htmlFor="email" className={styles.label}>
-                                Email
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className={styles.input}
-                                placeholder="you@example.com"
+                                placeholder="john_doe"
                                 required
                             />
                         </div>
@@ -75,11 +72,10 @@ const RegPage = () => {
                             />
                         </div>
 
-                        <button
-                            type="submit"
-                            className={styles.submitButton}
-                        >
-                            Create Account
+                        {error ? <p className={styles.errorText}>{error}</p> : null}
+
+                        <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
+                            {isSubmitting ? "Creating..." : "Create Account"}
                         </button>
                     </form>
 

@@ -1,164 +1,97 @@
 import { Link } from "react-router";
-import { useState } from "react";
-import chevronup from "../../assets/Icons/chevronup.svg"
-import chevrondown from "../../assets/Icons/chevrondown.svg"
-import lock from "../../assets/Icons/lock.svg"
+import { useEffect, useMemo, useState } from "react";
+import Chevronup from "../../assets/Icons/chevronup.svg?react"
+import Chevrondown from "../../assets/Icons/chevrondown.svg?react"
+import Lock from "../../assets/Icons/lock.svg?react"
+import { getCourseGroups, getCourses, getCourseModules, type Course } from "../../services/courses";
+import { getModule } from "../../services/modules";
+import { getProgressOverview } from "../../services/progress";
+import PageState from "../../components/PageState/PageState";
 import styles from "./CoursesPage.module.css";
 
-const coursesByCategory = [
-    {
-        category: "JavaScript",
-        language: "JavaScript",
-        icon: "🟨",
-        courses: [
-            {
-                id: "javascript-basics",
-                title: "JavaScript Basics",
-                description: "Learn the fundamentals of JavaScript programming",
-                progress: 80,
-                topics: 12,
-                completed: 10,
-                locked: false,
-            },
-            {
-                id: "javascript-intermediate",
-                title: "JavaScript Intermediate",
-                description: "Arrays, objects, and advanced concepts",
-                progress: 45,
-                topics: 15,
-                completed: 7,
-                locked: false,
-            },
-            {
-                id: "javascript-advanced",
-                title: "Advanced JavaScript",
-                description: "Async programming, closures, and design patterns",
-                progress: 0,
-                topics: 18,
-                completed: 0,
-                locked: false,
-            },
-        ],
-    },
-    {
-        category: "TypeScript",
-        language: "TypeScript",
-        icon: "🔷",
-        courses: [
-            {
-                id: "typescript",
-                title: "TypeScript Fundamentals",
-                description: "Type-safe JavaScript for better code quality",
-                progress: 0,
-                topics: 12,
-                completed: 0,
-                locked: false,
-            },
-            {
-                id: "typescript-advanced",
-                title: "Advanced TypeScript",
-                description: "Generics, utility types, and type manipulation",
-                progress: 0,
-                topics: 14,
-                completed: 0,
-                locked: true,
-            },
-        ],
-    },
-    {
-        category: "React",
-        language: "React",
-        icon: "⚛️",
-        courses: [
-            {
-                id: "react-basics",
-                title: "React Basics",
-                description: "Introduction to React and component-based development",
-                progress: 30,
-                topics: 10,
-                completed: 3,
-                locked: false,
-            },
-            {
-                id: "react-hooks",
-                title: "React Hooks",
-                description: "useState, useEffect, and custom hooks",
-                progress: 0,
-                topics: 12,
-                completed: 0,
-                locked: false,
-            },
-            {
-                id: "advanced-react",
-                title: "Advanced React",
-                description: "Context, performance optimization, and patterns",
-                progress: 0,
-                topics: 14,
-                completed: 0,
-                locked: true,
-            },
-        ],
-    },
-    {
-        category: "Backend Development",
-        language: "Node.js",
-        icon: "🟢",
-        courses: [
-            {
-                id: "nodejs",
-                title: "Node.js Fundamentals",
-                description: "Server-side JavaScript with Node.js",
-                progress: 0,
-                topics: 16,
-                completed: 0,
-                locked: true,
-            },
-            {
-                id: "express",
-                title: "Express.js",
-                description: "Building REST APIs with Express",
-                progress: 0,
-                topics: 14,
-                completed: 0,
-                locked: true,
-            },
-        ],
-    },
-    {
-        category: "Python",
-        language: "Python",
-        icon: "🐍",
-        courses: [
-            {
-                id: "python-basics",
-                title: "Python Basics",
-                description: "Learn Python programming fundamentals",
-                progress: 0,
-                topics: 15,
-                completed: 0,
-                locked: true,
-            },
-            {
-                id: "python-data",
-                title: "Python for Data Science",
-                description: "NumPy, Pandas, and data analysis",
-                progress: 0,
-                topics: 18,
-                completed: 0,
-                locked: true,
-            },
-        ],
-    },
-];
+type CourseLinks = {
+    theoryId: number | null;
+    quizId: number | null;
+    taskId: number | null;
+    topicsCount: number;
+};
 
 const CoursesPage = () => {
-    const [expandedCategories, setExpandedCategories] = useState<string[]>(["JavaScript", "React"]);
+    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+    const [groups, setGroups] = useState<Array<{ id: number; title: string; type: string }>>([]);
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [progressMap, setProgressMap] = useState<Map<number, number>>(new Map());
+    const [linksMap, setLinksMap] = useState<Map<number, CourseLinks>>(new Map());
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [groupsData, coursesData, overview] = await Promise.all([
+                    getCourseGroups(),
+                    getCourses(),
+                    getProgressOverview(),
+                ]);
+                setGroups(groupsData);
+                setCourses(coursesData);
+                setExpandedCategories(groupsData.slice(0, 2).map((group) => group.title));
+                setProgressMap(new Map(overview.courses.map((item) => [item.courseId, item.percentage])));
+
+                const linksEntries = await Promise.all(
+                    coursesData.map(async (course) => {
+                        const emptyLinks: CourseLinks = {
+                            theoryId: null,
+                            quizId: null,
+                            taskId: null,
+                            topicsCount: 0,
+                        };
+                        try {
+                            const modules = await getCourseModules(course.id);
+                            if (modules.length === 0) {
+                                return [course.id, emptyLinks] as [number, CourseLinks];
+                            }
+                            const firstModule = await getModule(modules[0].id);
+                            return [
+                                course.id,
+                                {
+                                    theoryId: modules[0].id,
+                                    quizId: firstModule?.quizzes[0]?.id || null,
+                                    taskId: firstModule?.tasks[0]?.id || null,
+                                    topicsCount: modules.length,
+                                },
+                            ] as [number, CourseLinks];
+                        } catch (_error) {
+                            return [course.id, emptyLinks] as [number, CourseLinks];
+                        }
+                    })
+                );
+
+                setLinksMap(new Map(linksEntries));
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    const coursesByCategory = useMemo(() => {
+        return groups.map((group) => ({
+            category: group.title,
+            language: group.type,
+            courses: courses.filter((course) => course.courseGroupId === group.id),
+        }));
+    }, [courses, groups]);
 
     const toggleCategory = (category: string) => {
         setExpandedCategories((prev) =>
             prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
         );
     };
+
+    if (loading) {
+        return <PageState kind="loading" title="Loading courses..." />;
+    }
 
     return (
         <div className={styles.page}>
@@ -171,9 +104,14 @@ const CoursesPage = () => {
                 {coursesByCategory.map((categoryData) => {
                     const isExpanded = expandedCategories.includes(categoryData.category);
                     const totalCourses = categoryData.courses.length;
-                    const completedCourses = categoryData.courses.filter((c) => c.progress === 100).length;
+                    const completedCourses = categoryData.courses.filter(
+                        (course) => (progressMap.get(course.id) || 0) >= 100
+                    ).length;
                     const inProgressCourses = categoryData.courses.filter(
-                        (c) => c.progress > 0 && c.progress < 100
+                        (course) => {
+                            const progress = progressMap.get(course.id) || 0;
+                            return progress > 0 && progress < 100;
+                        }
                     ).length;
 
                     return (
@@ -183,7 +121,6 @@ const CoursesPage = () => {
                                 className={styles.categoryButton}
                             >
                                 <div className={styles.categoryInfo}>
-                                    <span className={styles.categoryEmoji}>{categoryData.icon}</span>
                                     <div className={styles.categoryText}>
                                         <h2 className={styles.categoryTitle}>{categoryData.category}</h2>
                                         <p className={styles.categoryMeta}>
@@ -199,9 +136,9 @@ const CoursesPage = () => {
                                         </span>
                                     )}
                                     {isExpanded ? (
-                                        <img src={chevronup} className={styles.chevronIcon} />
+                                        <Chevronup className={styles.chevronIcon} />
                                     ) : (
-                                        <img src={chevrondown} className={styles.chevronIcon} />
+                                        <Chevrondown className={styles.chevronIcon} />
                                     )}
                                 </div>
                             </button>
@@ -209,68 +146,76 @@ const CoursesPage = () => {
                             {isExpanded && (
                                 <div className={styles.expandedContent}>
                                     <div className={styles.coursesGrid}>
-                                        {categoryData.courses.map((course) => (
+                                        {categoryData.courses.map((course, index) => {
+                                            const progress = progressMap.get(course.id) || 0;
+                                            const links = linksMap.get(course.id) || {
+                                                theoryId: null,
+                                                quizId: null,
+                                                taskId: null,
+                                                topicsCount: 0,
+                                            };
+                                            const locked = index > 0 && (progressMap.get(categoryData.courses[index - 1].id) || 0) < 100;
+
+                                            return (
                                             <div
                                                 key={course.id}
-                                                className={`${styles.courseCard} ${course.locked ? styles.courseLocked : ""}`}
+                                                className={`${styles.courseCard} ${locked ? styles.courseLocked : ""}`}
                                             >
                                                 <div className={styles.courseHeader}>
                                                     <div className={styles.courseInfo}>
                                                         <h3 className={styles.courseTitle}>{course.title}</h3>
-                                                        <p className={styles.courseDescription}>{course.description}</p>
+                                                        <p className={styles.courseDescription}>{course.description || "No description yet."}</p>
                                                         <div className={styles.courseMeta}>
-                                                            <span>{course.topics} topics</span>
+                                                            <span>{links.topicsCount} topics</span>
                                                             <span>•</span>
-                                                            <span>
-                                                                {course.completed}/{course.topics} completed
-                                                            </span>
+                                                            <span>{course.level}</span>
                                                         </div>
                                                     </div>
-                                                    {course.locked && (
+                                                    {locked && (
                                                         <div className={styles.lockBadge}>
-                                                            <img src={lock} className={styles.lockIcon} />
+                                                            <Lock className={styles.lockIcon} />
                                                         </div>
                                                     )}
                                                 </div>
 
-                                                {!course.locked && (
+                                                {!locked && (
                                                     <>
                                                         <div className={styles.progressTrack}>
                                                             <div
                                                                 className={styles.progressFill}
-                                                                style={{ width: `${course.progress}%` }}
+                                                                style={{ width: `${progress}%` }}
                                                             ></div>
                                                         </div>
                                                         <div className={styles.linkRow}>
-                                                            <Link
-                                                                to={`/app/theory/${course.id}`}
+                                                            {links.theoryId ? <Link
+                                                                to={`/app/theory/${links.theoryId}`}
                                                                 className={`${styles.courseLink} ${styles.theoryLink}`}
                                                             >
                                                                 Theory
-                                                            </Link>
-                                                            <Link
-                                                                to={`/app/quiz/${course.id}`}
+                                                            </Link> : <span className={`${styles.courseLink} ${styles.theoryLink}`}>Theory</span>}
+                                                            {links.quizId ? <Link
+                                                                to={`/app/quiz/${links.quizId}`}
                                                                 className={`${styles.courseLink} ${styles.quizLink}`}
                                                             >
                                                                 Quiz
-                                                            </Link>
-                                                            <Link
-                                                                to={`/app/task/${course.id}`}
+                                                            </Link> : <span className={`${styles.courseLink} ${styles.quizLink}`}>Quiz</span>}
+                                                            {links.taskId ? <Link
+                                                                to={`/app/task/${links.taskId}`}
                                                                 className={`${styles.courseLink} ${styles.practiceLink}`}
                                                             >
                                                                 Practice
-                                                            </Link>
+                                                            </Link> : <span className={`${styles.courseLink} ${styles.practiceLink}`}>Practice</span>}
                                                         </div>
                                                     </>
                                                 )}
 
-                                                {course.locked && (
+                                                {locked && (
                                                     <div className={styles.lockedHint}>
                                                         Complete previous courses to unlock
                                                     </div>
                                                 )}
                                             </div>
-                                        ))}
+                                        )})}
                                     </div>
                                 </div>
                             )}

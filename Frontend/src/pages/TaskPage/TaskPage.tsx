@@ -1,58 +1,69 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import chevronleft from "../../assets/Icons/chevronleft.svg"
-import light from "../../assets/Icons/light.svg"
-import plain from "../../assets/Icons/plain.svg"
-import aistar from "../../assets/Icons/aistar.svg"
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router";
+import Chevronleft from "../../assets/Icons/chevronleft.svg?react"
+import Light from "../../assets/Icons/light.svg?react"
+import Plain from "../../assets/Icons/plain.svg?react"
+import Aistar from "../../assets/Icons/aistar.svg?react"
+import { sendTaskMessage } from "../../services/ai";
+import { getTask, submitTask, type Task } from "../../services/tasks";
+import PageState from "../../components/PageState/PageState";
 import styles from "./TaskPage.module.css";
 
 const TaskPage = () => {
-    const [code, setCode] = useState(`function filterEvenNumbers(arr) {
-  // Your code here
-
-}`);
+    const { taskId } = useParams();
+    const [task, setTask] = useState<Task | null>(null);
+    const [code, setCode] = useState("");
     const [result, setResult] = useState<{ type: "success" | "error"; message: string } | null>(null);
     const [messages, setMessages] = useState([
         { role: "assistant", content: "Hi! I'm here to help you with this task. Feel free to ask questions!" },
     ]);
     const [input, setInput] = useState("");
+    const [isLoading, setIsLoading] = useState(true);
 
-    const handleRun = () => {
-        const hasFilter = code.includes("filter");
-        if (hasFilter && code.includes("return")) {
+    useEffect(() => {
+        const loadTask = async () => {
+            if (!taskId) return;
+            try {
+                const data = await getTask(Number(taskId));
+                setTask(data);
+                setCode(data.starterCode);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadTask();
+    }, [taskId]);
+
+    const handleRun = async () => {
+        if (!task) return;
+        try {
+            const response = await submitTask(task.id, code);
             setResult({
-                type: "success",
-                message: "Great job! Your solution works correctly. All test cases passed!",
+                type: response.isCorrect ? "success" : "error",
+                message: response.isCorrect
+                    ? "Great job! Your solution works correctly. All test cases passed!"
+                    : "Not quite right. Check the test cases and try again.",
             });
-        } else {
-            setResult({
-                type: "error",
-                message: "Not quite right. Make sure you're using the filter method and returning the result.",
-            });
+        } catch (_error) {
+            setResult({ type: "error", message: "Failed to submit solution." });
         }
     };
 
-    const handleHint = () => {
-        setMessages([
-            ...messages,
-            { role: "user", content: "Give a hint" },
-            {
-                role: "assistant",
-                content: "Try using the filter() method with a callback function that checks if a number is even using the modulo operator (%).",
-            },
-        ]);
+    const sendTaskChat = async (message: string) => {
+        if (!task) return;
+        setMessages((prev) => [...prev, { role: "user", content: message }]);
+        const response = await sendTaskMessage(task.id, message);
+        setMessages((prev) => [...prev, { role: "assistant", content: response.response }]);
     };
 
-    const handleSendMessage = () => {
+    const handleHint = async () => {
+        await sendTaskChat("Give a hint");
+    };
+
+    const handleSendMessage = async () => {
         if (!input.trim()) return;
-        setMessages([
-            ...messages,
-            { role: "user", content: input },
-            {
-                role: "assistant",
-                content: "That's a great question! The filter method creates a new array with elements that pass a test. You provide a function that returns true or false for each element.",
-            },
-        ]);
+        await sendTaskChat(input);
         setInput("");
     };
 
@@ -63,28 +74,36 @@ const TaskPage = () => {
         "Show example",
     ];
 
+    if (isLoading) {
+        return <PageState kind="loading" title="Loading task..." />;
+    }
+
+    if (!task) {
+        return <PageState kind="empty" title="Task not found." description="Try opening another task from courses." />;
+    }
+
     return (
         <div className={styles.page}>
             <div className={styles.header}>
                 <Link to="/app/courses" className={styles.backLink}>
-                    <img src={chevronleft} className={styles.smallIcon} />
+                    <Chevronleft className={styles.smallIcon} />
                     Back to Courses
                 </Link>
             </div>
 
             <div className={styles.titleBlock}>
-                <h1 className={styles.title}>Filter Even Numbers</h1>
+                <h1 className={styles.title}>{task.title}</h1>
                 <p className={styles.subtitle}>
-                    Write a function that takes an array of numbers and returns a new array containing only the even numbers.
+                    {task.description}
                 </p>
             </div>
 
             <div className={styles.requirementsCard}>
                 <h3 className={styles.requirementsTitle}>Requirements:</h3>
                 <ul className={styles.requirementsList}>
-                    <li>Use the <code className={styles.inlineCode}>filter()</code> method</li>
-                    <li>Return a new array with only even numbers</li>
-                    <li>Do not modify the original array</li>
+                    <li>Write a correct solution for this task</li>
+                    <li>Run code to check correctness</li>
+                    <li>Use AI assistant for hints when needed</li>
                 </ul>
             </div>
 
@@ -98,7 +117,7 @@ const TaskPage = () => {
                                     onClick={handleHint}
                                     className={styles.hintButton}
                                 >
-                                    <img src={light} className={styles.smallIcon} />
+                                    <Light className={styles.smallIcon} />
                                     Get Hint
                                 </button>
                                 <button
@@ -129,23 +148,20 @@ const TaskPage = () => {
                     <div className={styles.testCard}>
                         <h3 className={styles.requirementsTitle}>Test Cases</h3>
                         <div className={styles.testCases}>
-                            <div className={styles.testCase}>
-                                <span className={styles.testLabel}>Input:</span> [1, 2, 3, 4, 5, 6]
-                                <br />
-                                <span className={styles.testLabel}>Expected:</span> [2, 4, 6]
-                            </div>
-                            <div className={styles.testCase}>
-                                <span className={styles.testLabel}>Input:</span> [10, 15, 20, 25]
-                                <br />
-                                <span className={styles.testLabel}>Expected:</span> [10, 20]
-                            </div>
+                            {task.codeTests.map((test) => (
+                                <div key={test.id} className={styles.testCase}>
+                                    <span className={styles.testLabel}>Input:</span> {test.input}
+                                    <br />
+                                    <span className={styles.testLabel}>Expected:</span> {test.expectedOutput}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
 
                 <div className={styles.assistantPanel}>
                     <div className={styles.assistantHeader}>
-                        <img src={aistar} className={styles.assistantIcon} />
+                        <Aistar className={styles.assistantIcon} />
                         <h3 className={styles.requirementsTitle}>AI Assistant</h3>
                     </div>
 
@@ -169,16 +185,7 @@ const TaskPage = () => {
                             {quickActions.map((action) => (
                                 <button
                                     key={action}
-                                    onClick={() => {
-                                        setMessages([
-                                            ...messages,
-                                            { role: "user", content: action },
-                                            {
-                                                role: "assistant",
-                                                content: `Here's help with "${action}". The filter method is perfect for selecting specific elements from an array based on a condition.`,
-                                            },
-                                        ]);
-                                    }}
+                                    onClick={async () => sendTaskChat(action)}
                                     className={styles.quickActionButton}
                                 >
                                     {action}
@@ -199,7 +206,7 @@ const TaskPage = () => {
                                 onClick={handleSendMessage}
                                 className={styles.sendButton}
                             >
-                                <img src={plain} className={styles.smallIcon} />
+                                <Plain className={styles.smallIcon} />
                             </button>
                         </div>
                     </div>

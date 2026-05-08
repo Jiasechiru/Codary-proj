@@ -61,6 +61,7 @@
 }
 
 .categoryTitle {
+  color: var(--foreground);
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;

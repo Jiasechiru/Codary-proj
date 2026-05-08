@@ -1,11 +1,11 @@
 import { Link } from "react-router";
 import LogoBlueBackground from "../../assets/Icons/LogoBlueBackground.svg"
-import brain from "../../assets/Icons/brain.svg"
-import chat from "../../assets/Icons/chat.svg"
-import target from "../../assets/Icons/target.svg"
-import lightning from "../../assets/Icons/lightning.svg"
-import book from "../../assets/Icons/book.svg"
-import slbreaks from "../../assets/Icons/slbreaks.svg"
+import Brain from "../../assets/Icons/brain.svg?react"
+import Chat from "../../assets/Icons/chat.svg?react"
+import Target from "../../assets/Icons/target.svg?react"
+import Lightning from "../../assets/Icons/lightning.svg?react"
+import Book from "../../assets/Icons/book.svg?react"
+import Slbreaks from "../../assets/Icons/slbreaks.svg?react"
 import styles from "./LandingPage.module.css";
 
 const LandingPage = () => {
@@ -59,7 +59,7 @@ const LandingPage = () => {
                     <div className={styles.featuresGrid}>
                         <div className={styles.featureCard}>
                             <div className={styles.featureIconContainer}>
-                                <img src={brain} className={styles.featureIcon} />
+                                <Brain className={styles.featureIcon} />
                             </div>
                             <h3 className={styles.featureTitle}>Smart Code Analysis</h3>
                             <p className={styles.featureDescription}>
@@ -69,7 +69,7 @@ const LandingPage = () => {
 
                         <div className={styles.featureCard}>
                             <div className={styles.featureIconContainer}>
-                                <img src={chat} className={styles.featureIcon} />
+                                <Chat className={styles.featureIcon} />
                             </div>
                             <h3 className={styles.featureTitle}>Interactive Q&A</h3>
                             <p className={styles.featureDescription}>
@@ -79,7 +79,7 @@ const LandingPage = () => {
 
                         <div className={styles.featureCard}>
                             <div className={styles.featureIconContainer}>
-                                <img src={target} className={styles.featureIcon} />
+                                <Target className={styles.featureIcon} />
                             </div>
                             <h3 className={styles.featureTitle}>Personalized Hints</h3>
                             <p className={styles.featureDescription}>
@@ -89,7 +89,7 @@ const LandingPage = () => {
 
                         <div className={styles.featureCard}>
                             <div className={styles.featureIconContainer}>
-                                <img src={lightning} className={styles.featureIcon} />
+                                <Lightning className={styles.featureIcon} />
                             </div>
                             <h3 className={styles.featureTitle}>Real-time Error Detection</h3>
                             <p className={styles.featureDescription}>
@@ -99,7 +99,7 @@ const LandingPage = () => {
 
                         <div className={styles.featureCard}>
                             <div className={styles.featureIconContainer}>
-                                <img src={book} className={styles.featureIcon} />
+                                <Book className={styles.featureIcon} />
                             </div>
                             <h3 className={styles.featureTitle}>Structured Learning Path</h3>
                             <p className={styles.featureDescription}>
@@ -109,7 +109,7 @@ const LandingPage = () => {
 
                         <div className={styles.featureCard}>
                             <div className={styles.featureIconContainer}>
-                                <img src={slbreaks} className={styles.featureIcon} />
+                                <Slbreaks className={styles.featureIcon} />
                             </div>
                             <h3 className={styles.featureTitle}>Hands-on Practice</h3>
                             <p className={styles.featureDescription}>
