@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import Moon from "../../assets/Icons/moon.svg?react"
 import Sun from "../../assets/Icons/sun.svg?react"
+import { logout } from "../../services/auth";
 import { getSettings, updateSettings } from "../../services/settings";
 import PageState from "../../components/PageState/PageState";
 import styles from "./SettingsPage.module.css";
 
 const SettingsPage = () => {
+    const navigate = useNavigate();
     const [aiEnabled, setAiEnabled] = useState(true);
     const [notifications, setNotifications] = useState(true);
     const [darkMode, setDarkMode] = useState(false);
@@ -58,6 +61,14 @@ const SettingsPage = () => {
         setDarkMode(nextDark);
         document.documentElement.classList.toggle("dark", nextDark);
         await saveSettings({ darkMode: nextDark });
+    };
+
+    const handleLogout = async () => {
+        try {
+            await logout();
+        } finally {
+            navigate("/login");
+        }
     };
 
     if (isLoading) {
@@ -188,6 +199,13 @@ const SettingsPage = () => {
                         </button>
                         <button className={styles.secondaryButton}>
                             Update Email
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleLogout}
+                            className={styles.logoutButton}
+                        >
+                            Log Out
                         </button>
                         <button className={styles.dangerButton}>
                             Delete Account

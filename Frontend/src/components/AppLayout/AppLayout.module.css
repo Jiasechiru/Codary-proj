@@ -9,7 +9,22 @@
 
 .main {
   flex: 1;
+  min-width: 0;
   margin-top: 4rem;
   padding: 2rem;
   transition: margin-left 0.3s ease;
+}
+
+@media (max-width: 1023px) {
+  .main {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .main {
+    margin-left: 0 !important;
+    padding: 1rem;
+    padding-bottom: 5rem;
+  }
 }

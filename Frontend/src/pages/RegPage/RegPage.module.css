@@ -10,6 +10,7 @@
 .container {
   width: 100%;
   max-width: 28rem;
+  min-width: 0;
 }
 
 .header {
@@ -60,17 +61,21 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   padding: 2rem;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .form {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  min-width: 0;
 }
 
 .field {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .label {
@@ -80,6 +85,9 @@
 
 .input {
   width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
   padding: 0.5rem 1rem;
   background: var(--input-background);
   border: 1px solid var(--input);
@@ -94,6 +102,8 @@
 
 .submitButton {
   width: 100%;
+  box-sizing: border-box;
+  max-width: 100%;
   padding: 0.625rem 1rem;
   background: var(--primary);
   color: var(--primary-foreground);
@@ -136,4 +146,20 @@
 
 .footerLink:hover {
   text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+  .page {
+    padding: 1rem;
+    align-items: flex-start;
+    padding-top: 2rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.25rem;
+  }
 }

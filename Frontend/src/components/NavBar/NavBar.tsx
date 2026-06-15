@@ -1,21 +1,9 @@
 import { Link } from "react-router";
-import { useNavigate } from "react-router";
 import LogoBlueBackground from "../../assets/Icons/LogoBlueBackground.svg"
 import Profile from "../../assets/Icons/profile.svg?react"
-import { logout } from "../../services/auth";
 import styles from "./NavBar.module.css";
 
 const NavBar = () => {
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        try {
-            await logout();
-        } finally {
-            navigate("/login");
-        }
-    };
-
     return (
         <nav className={styles.nav}>
             <div className={styles.content}>
@@ -27,9 +15,6 @@ const NavBar = () => {
                 </Link>
 
                 <div className={styles.actions}>
-                    <button onClick={handleLogout} className={styles.logoutButton}>
-                        Logout
-                    </button>
                     <Link
                         to="/app/profile"
                         className={styles.profileLink}

@@ -22,3 +22,11 @@
   color: var(--muted-foreground);
   font-size: 0.875rem;
 }
+
+@media (max-width: 767px) {
+  .wrap {
+    padding: 0.875rem 1rem;
+    margin-left: 0;
+    margin-right: 0;
+  }
+}

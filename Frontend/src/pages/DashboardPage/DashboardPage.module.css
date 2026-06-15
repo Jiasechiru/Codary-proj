@@ -142,7 +142,10 @@
 
 .primaryLink {
   margin-top: 1rem;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   width: 100%;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
@@ -215,7 +218,11 @@
 }
 
 .inlinePrimaryLink {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
   text-decoration: none;
   padding: 0.5rem 1.5rem;
   border-radius: 0.5rem;
@@ -227,12 +234,48 @@
   opacity: 0.9;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .statsGrid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .contentGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contentGrid {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 640px) and (max-width: 767px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .rowBetween {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .challengeCard {
+    padding: 1rem;
+  }
+
+  .card {
+    padding: 1rem;
   }
 }

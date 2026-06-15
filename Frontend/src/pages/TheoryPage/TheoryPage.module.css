@@ -92,15 +92,19 @@
 
 .footerActions {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .secondaryButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  box-sizing: border-box;
+  max-width: 100%;
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 0.5rem;
@@ -114,6 +118,11 @@
 }
 
 .primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
   padding: 0.5rem 1.5rem;
   border-radius: 0.5rem;
   text-decoration: none;
@@ -123,4 +132,30 @@
 
 .primaryButton:hover {
   opacity: 0.9;
+}
+
+@media (max-width: 900px) {
+  .footerActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .secondaryButton,
+  .primaryButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .contentCard {
+    padding: 1.25rem;
+  }
+
+  .sectionTitle {
+    font-size: 1.125rem;
+  }
 }
