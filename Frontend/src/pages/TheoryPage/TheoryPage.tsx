@@ -1,7 +1,6 @@
 import { Link, useParams } from "react-router";
 import { useEffect, useState } from "react";
 import Chevronleft from "../../assets/Icons/chevronleft.svg?react"
-import Chevronright from "../../assets/Icons/chevronright.svg?react"
 import { getModule } from "../../services/modules";
 import PageState from "../../components/PageState/PageState";
 import styles from "./TheoryPage.module.css";
@@ -11,16 +10,27 @@ const TheoryPage = () => {
     const [title, setTitle] = useState("Theory");
     const [content, setContent] = useState("Loading...");
     const [quizId, setQuizId] = useState<number | null>(null);
+    const [courseId, setCourseId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const courseLink = courseId ? `/app/courses/${courseId}` : "/app/courses";
 
     useEffect(() => {
         const loadTheory = async () => {
             if (!topicId) return;
             try {
                 const module = await getModule(Number(topicId));
-                setTitle(module?.title || "Theory");
-                setContent(module?.theory?.content || "Theory content is not available for this module yet.");
-                setQuizId(module?.quizzes[0]?.id || null);
+                if (!module) {
+                    setError("Module not found.");
+                    return;
+                }
+                setTitle(module.title || "Theory");
+                setContent(module.theory?.content || "Theory content is not available for this module yet.");
+                setQuizId(module.quizzes[0]?.id || null);
+                setCourseId(module.courseId);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to load theory.");
             } finally {
                 setIsLoading(false);
             }
@@ -33,12 +43,22 @@ const TheoryPage = () => {
         return <PageState kind="loading" title="Loading theory..." />;
     }
 
+    if (error) {
+        return (
+            <PageState
+                kind="error"
+                title="Unable to open theory."
+                description={error}
+            />
+        );
+    }
+
     return (
         <div className={styles.page}>
             <div className={styles.header}>
-                <Link to="/app/courses" className={styles.backLink}>
+                <Link to={courseLink} className={styles.backLink}>
                     <Chevronleft className={styles.smallIcon} />
-                    Back to Courses
+                    Back to Course
                 </Link>
                 <h1 className={styles.title}>{title}</h1>
                 <p className={styles.subtitle}>Module theory and explanations</p>
@@ -54,20 +74,16 @@ const TheoryPage = () => {
             </div>
 
             <div className={styles.footerActions}>
-                <button className={styles.secondaryButton}>
+                <Link to={courseLink} className={styles.secondaryButton}>
                     <Chevronleft className={styles.smallIcon} />
-                    Previous Topic
-                </button>
+                    Back to Modules
+                </Link>
                 {quizId ? <Link
                     to={`/app/quiz/${quizId}`}
                     className={styles.primaryButton}
                 >
                     Take Quiz
                 </Link> : <span className={styles.primaryButton}>Quiz unavailable</span>}
-                <button className={styles.secondaryButton}>
-                    Next Topic
-                    <Chevronright className={styles.smallIcon} />
-                </button>
             </div>
         </div>
     );

@@ -1,12 +1,13 @@
 const prisma = require("../prisma/client");
 const AppError = require("../utils/AppError");
 const submissionQueue = require("../queues/submission.queue");
+const { isModuleAccessible } = require("./moduleAccess.service");
 
 function toSubmissionJobId(attemptId) {
   return `attempt-${attemptId}`;
 }
 
-async function getTaskById(id) {
+async function getTaskById(id, userId) {
   const task = await prisma.task.findUnique({
     where: { id },
     include: { codeTests: true },
@@ -14,6 +15,12 @@ async function getTaskById(id) {
   if (!task) {
     throw new AppError("Task not found", 404);
   }
+
+  const accessible = await isModuleAccessible(userId, task.moduleId);
+  if (!accessible) {
+    throw new AppError("Module is locked. Complete the previous module first.", 403);
+  }
+
   return task;
 }
 
@@ -21,6 +28,11 @@ async function submitTask(userId, taskId, code) {
   const task = await prisma.task.findUnique({ where: { id: taskId } });
   if (!task) {
     throw new AppError("Task not found", 404);
+  }
+
+  const accessible = await isModuleAccessible(userId, task.moduleId);
+  if (!accessible) {
+    throw new AppError("Module is locked. Complete the previous module first.", 403);
   }
 
   const attempt = await prisma.attempt.create({

@@ -15,6 +15,7 @@ import {
     type Task,
 } from "../../services/tasks";
 import { getProgressOverview } from "../../services/progress";
+import { getModule } from "../../services/modules";
 import PageState from "../../components/PageState/PageState";
 import styles from "./TaskPage.module.css";
 
@@ -35,6 +36,10 @@ const TaskPage = () => {
     ]);
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(true);
+    const [courseId, setCourseId] = useState<number | null>(null);
+    const [loadError, setLoadError] = useState<string | null>(null);
+
+    const courseLink = courseId ? `/app/courses/${courseId}` : "/app/courses";
 
     useEffect(() => {
         const loadTask = async () => {
@@ -44,11 +49,15 @@ const TaskPage = () => {
                     getTask(Number(taskId)),
                     getProgressOverview(),
                 ]);
+                const module = await getModule(data.moduleId);
                 setTask(data);
                 setCode(data.starterCode);
+                setCourseId(module?.courseId ?? null);
                 setIsCompleted(
                     overview.tasks.some((item) => item.taskId === data.id && item.isCompleted)
                 );
+            } catch (error) {
+                setLoadError(error instanceof Error ? error.message : "Failed to load task.");
             } finally {
                 setIsLoading(false);
             }
@@ -111,6 +120,16 @@ const TaskPage = () => {
         return <PageState kind="loading" title="Loading task..." />;
     }
 
+    if (loadError) {
+        return (
+            <PageState
+                kind="error"
+                title="Unable to open task."
+                description={loadError}
+            />
+        );
+    }
+
     if (!task) {
         return <PageState kind="empty" title="Task not found." description="Try opening another task from courses." />;
     }
@@ -119,9 +138,9 @@ const TaskPage = () => {
         return (
             <div className={styles.page}>
                 <div className={styles.header}>
-                    <Link to="/app/courses" className={styles.backLink}>
+                    <Link to={courseLink} className={styles.backLink}>
                         <Chevronleft className={styles.smallIcon} />
-                        Back to Courses
+                        Back to Course
                     </Link>
                 </div>
 
@@ -132,8 +151,8 @@ const TaskPage = () => {
                     <h1 className={styles.title}>Task Completed!</h1>
                     <p className={styles.subtitle}>{result.message}</p>
                     <p className={styles.completionMeta}>Your progress has been saved.</p>
-                    <Link to="/app/courses" className={styles.completionButton}>
-                        Back to Courses
+                    <Link to={courseLink} className={styles.completionButton}>
+                        Back to Course
                     </Link>
                 </div>
             </div>
@@ -143,9 +162,9 @@ const TaskPage = () => {
     return (
         <div className={styles.page}>
             <div className={styles.header}>
-                <Link to="/app/courses" className={styles.backLink}>
+                <Link to={courseLink} className={styles.backLink}>
                     <Chevronleft className={styles.smallIcon} />
-                    Back to Courses
+                    Back to Course
                 </Link>
             </div>
 

@@ -2,7 +2,7 @@ const tasksService = require("../services/tasks.service");
 
 async function getTask(req, res, next) {
   try {
-    res.json(await tasksService.getTaskById(Number(req.params.id)));
+    res.json(await tasksService.getTaskById(Number(req.params.id), req.user.id));
   } catch (error) {
     next(error);
   }

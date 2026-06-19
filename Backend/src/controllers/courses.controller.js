@@ -24,6 +24,26 @@ async function getCourse(req, res, next) {
   }
 }
 
+async function getCourseDetails(req, res, next) {
+  try {
+    res.json(
+      await coursesService.getCourseDetails(req.user.id, Number(req.params.id))
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function enrollCourse(req, res, next) {
+  try {
+    res.status(201).json(
+      await coursesService.enrollCourse(req.user.id, Number(req.params.id))
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
 async function getModulesByCourse(req, res, next) {
   try {
     res.json(await coursesService.getCourseModules(Number(req.params.id)));
@@ -36,5 +56,7 @@ module.exports = {
   getGroups,
   getCourses,
   getCourse,
+  getCourseDetails,
+  enrollCourse,
   getModulesByCourse,
 };

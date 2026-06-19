@@ -2,26 +2,19 @@ import { Link } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import Chevronup from "../../assets/Icons/chevronup.svg?react"
 import Chevrondown from "../../assets/Icons/chevrondown.svg?react"
-import Lock from "../../assets/Icons/lock.svg?react"
-import { getCourseGroups, getCourses, getCourseModules, type Course } from "../../services/courses";
-import { getModule } from "../../services/modules";
+import { enrollCourse, getCourseGroups, getCourses, getCourseModules, type Course } from "../../services/courses";
 import { getProgressOverview } from "../../services/progress";
 import PageState from "../../components/PageState/PageState";
 import styles from "./CoursesPage.module.css";
-
-type CourseLinks = {
-    theoryId: number | null;
-    quizId: number | null;
-    taskId: number | null;
-    topicsCount: number;
-};
 
 const CoursesPage = () => {
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
     const [groups, setGroups] = useState<Array<{ id: number; title: string; type: string }>>([]);
     const [courses, setCourses] = useState<Course[]>([]);
+    const [enrolledSet, setEnrolledSet] = useState<Set<number>>(new Set());
     const [progressMap, setProgressMap] = useState<Map<number, number>>(new Map());
-    const [linksMap, setLinksMap] = useState<Map<number, CourseLinks>>(new Map());
+    const [moduleCountMap, setModuleCountMap] = useState<Map<number, number>>(new Map());
+    const [enrollingId, setEnrollingId] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -35,38 +28,21 @@ const CoursesPage = () => {
                 setGroups(groupsData);
                 setCourses(coursesData);
                 setExpandedCategories(groupsData.slice(0, 2).map((group) => group.title));
+                setEnrolledSet(new Set(overview.courses.map((item) => item.courseId)));
                 setProgressMap(new Map(overview.courses.map((item) => [item.courseId, item.percentage])));
 
-                const linksEntries = await Promise.all(
+                const countEntries = await Promise.all(
                     coursesData.map(async (course) => {
-                        const emptyLinks: CourseLinks = {
-                            theoryId: null,
-                            quizId: null,
-                            taskId: null,
-                            topicsCount: 0,
-                        };
                         try {
                             const modules = await getCourseModules(course.id);
-                            if (modules.length === 0) {
-                                return [course.id, emptyLinks] as [number, CourseLinks];
-                            }
-                            const firstModule = await getModule(modules[0].id);
-                            return [
-                                course.id,
-                                {
-                                    theoryId: modules[0].id,
-                                    quizId: firstModule?.quizzes[0]?.id || null,
-                                    taskId: firstModule?.tasks[0]?.id || null,
-                                    topicsCount: modules.length,
-                                },
-                            ] as [number, CourseLinks];
+                            return [course.id, modules.length] as [number, number];
                         } catch (_error) {
-                            return [course.id, emptyLinks] as [number, CourseLinks];
+                            return [course.id, 0] as [number, number];
                         }
                     })
                 );
 
-                setLinksMap(new Map(linksEntries));
+                setModuleCountMap(new Map(countEntries));
             } finally {
                 setLoading(false);
             }
@@ -74,6 +50,17 @@ const CoursesPage = () => {
 
         loadData();
     }, []);
+
+    const handleEnroll = async (courseId: number) => {
+        setEnrollingId(courseId);
+        try {
+            const result = await enrollCourse(courseId);
+            setEnrolledSet((prev) => new Set(prev).add(courseId));
+            setProgressMap((prev) => new Map(prev).set(courseId, result.percentage));
+        } finally {
+            setEnrollingId(null);
+        }
+    };
 
     const coursesByCategory = useMemo(() => {
         return groups.map((group) => ({
@@ -104,14 +91,11 @@ const CoursesPage = () => {
                 {coursesByCategory.map((categoryData) => {
                     const isExpanded = expandedCategories.includes(categoryData.category);
                     const totalCourses = categoryData.courses.length;
-                    const completedCourses = categoryData.courses.filter(
-                        (course) => (progressMap.get(course.id) || 0) >= 100
+                    const enrolledInCategory = categoryData.courses.filter((course) =>
+                        enrolledSet.has(course.id)
                     ).length;
-                    const inProgressCourses = categoryData.courses.filter(
-                        (course) => {
-                            const progress = progressMap.get(course.id) || 0;
-                            return progress > 0 && progress < 100;
-                        }
+                    const completedCourses = categoryData.courses.filter(
+                        (course) => enrolledSet.has(course.id) && (progressMap.get(course.id) || 0) >= 100
                     ).length;
 
                     return (
@@ -125,7 +109,7 @@ const CoursesPage = () => {
                                         <h2 className={styles.categoryTitle}>{categoryData.category}</h2>
                                         <p className={styles.categoryMeta}>
                                             {categoryData.language} • {totalCourses} courses
-                                            {inProgressCourses > 0 && ` • ${inProgressCourses} in progress`}
+                                            {enrolledInCategory > 0 && ` • ${enrolledInCategory} enrolled`}
                                         </p>
                                     </div>
                                 </div>
@@ -146,76 +130,63 @@ const CoursesPage = () => {
                             {isExpanded && (
                                 <div className={styles.expandedContent}>
                                     <div className={styles.coursesGrid}>
-                                        {categoryData.courses.map((course, index) => {
+                                        {categoryData.courses.map((course) => {
+                                            const isEnrolled = enrolledSet.has(course.id);
                                             const progress = progressMap.get(course.id) || 0;
-                                            const links = linksMap.get(course.id) || {
-                                                theoryId: null,
-                                                quizId: null,
-                                                taskId: null,
-                                                topicsCount: 0,
-                                            };
-                                            const locked = index > 0 && (progressMap.get(categoryData.courses[index - 1].id) || 0) < 100;
+                                            const isCompleted = isEnrolled && progress >= 100;
+                                            const moduleCount = moduleCountMap.get(course.id) || 0;
+                                            const isEnrolling = enrollingId === course.id;
 
                                             return (
-                                            <div
-                                                key={course.id}
-                                                className={`${styles.courseCard} ${locked ? styles.courseLocked : ""}`}
-                                            >
-                                                <div className={styles.courseHeader}>
-                                                    <div className={styles.courseInfo}>
-                                                        <h3 className={styles.courseTitle}>{course.title}</h3>
-                                                        <p className={styles.courseDescription}>{course.description || "No description yet."}</p>
-                                                        <div className={styles.courseMeta}>
-                                                            <span>{links.topicsCount} topics</span>
-                                                            <span>•</span>
-                                                            <span>{course.level}</span>
+                                                <div
+                                                    key={course.id}
+                                                    className={`${styles.courseCard} ${isCompleted ? styles.courseCardCompleted : ""}`}
+                                                >
+                                                    <div className={styles.courseHeader}>
+                                                        <div className={styles.courseInfo}>
+                                                            <h3 className={styles.courseTitle}>{course.title}</h3>
+                                                            <p className={styles.courseDescription}>
+                                                                {course.description || "No description yet."}
+                                                            </p>
+                                                            <div className={styles.courseMeta}>
+                                                                <span>{moduleCount} modules</span>
+                                                                <span>•</span>
+                                                                <span>{course.level}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    {locked && (
-                                                        <div className={styles.lockBadge}>
-                                                            <Lock className={styles.lockIcon} />
-                                                        </div>
+
+                                                    {isEnrolled ? (
+                                                        <>
+                                                            <div className={styles.progressTrack}>
+                                                                <div
+                                                                    className={styles.progressFill}
+                                                                    style={{ width: `${progress}%` }}
+                                                                ></div>
+                                                            </div>
+                                                            <p className={styles.courseProgressText}>
+                                                                {Math.round(progress)}% complete
+                                                            </p>
+                                                            <Link
+                                                                to={`/app/courses/${course.id}`}
+                                                                className={styles.openCourseButton}
+                                                            >
+                                                                {isCompleted ? "View Modules" : "Continue Learning"}
+                                                            </Link>
+                                                        </>
+                                                    ) : (
+                                                        <button
+                                                            type="button"
+                                                            className={styles.enrollButton}
+                                                            disabled={isEnrolling}
+                                                            onClick={() => handleEnroll(course.id)}
+                                                        >
+                                                            {isEnrolling ? "Enrolling..." : "Enroll in Course"}
+                                                        </button>
                                                     )}
                                                 </div>
-
-                                                {!locked && (
-                                                    <>
-                                                        <div className={styles.progressTrack}>
-                                                            <div
-                                                                className={styles.progressFill}
-                                                                style={{ width: `${progress}%` }}
-                                                            ></div>
-                                                        </div>
-                                                        <div className={styles.linkRow}>
-                                                            {links.theoryId ? <Link
-                                                                to={`/app/theory/${links.theoryId}`}
-                                                                className={`${styles.courseLink} ${styles.theoryLink}`}
-                                                            >
-                                                                Theory
-                                                            </Link> : <span className={`${styles.courseLink} ${styles.theoryLink}`}>Theory</span>}
-                                                            {links.quizId ? <Link
-                                                                to={`/app/quiz/${links.quizId}`}
-                                                                className={`${styles.courseLink} ${styles.quizLink}`}
-                                                            >
-                                                                Quiz
-                                                            </Link> : <span className={`${styles.courseLink} ${styles.quizLink}`}>Quiz</span>}
-                                                            {links.taskId ? <Link
-                                                                to={`/app/task/${links.taskId}`}
-                                                                className={`${styles.courseLink} ${styles.practiceLink}`}
-                                                            >
-                                                                Practice
-                                                            </Link> : <span className={`${styles.courseLink} ${styles.practiceLink}`}>Practice</span>}
-                                                        </div>
-                                                    </>
-                                                )}
-
-                                                {locked && (
-                                                    <div className={styles.lockedHint}>
-                                                        Complete previous courses to unlock
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )})}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}

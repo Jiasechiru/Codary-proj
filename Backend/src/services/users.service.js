@@ -39,11 +39,36 @@ async function getProfile(userId) {
     return null;
   }
 
+  const enrolledCourses = await prisma.userProgress.findMany({
+    where: { userId },
+    include: {
+      course: {
+        include: {
+          courseGroup: {
+            select: { id: true, title: true, type: true },
+          },
+        },
+      },
+    },
+    orderBy: { startDate: "desc" },
+  });
+
   return {
     ...user,
     completedTasks,
     totalTimeSpentSeconds: totalTime._sum.timeSpentSeconds || 0,
     achievements: achievements.map((item) => item.achievement),
+    enrolledCourses: enrolledCourses.map((entry) => ({
+      courseId: entry.courseId,
+      percentage: entry.percentage,
+      startDate: entry.startDate,
+      endDate: entry.endDate,
+      title: entry.course.title,
+      description: entry.course.description,
+      level: entry.course.level,
+      language: entry.course.language,
+      groupTitle: entry.course.courseGroup?.title ?? null,
+    })),
   };
 }
 

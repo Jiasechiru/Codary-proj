@@ -1,0 +1,264 @@
+.page {
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.backLink:hover {
+  color: var(--foreground);
+}
+
+.smallIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 1.875rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  margin: 0 0 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.courseMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.progressCard {
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.progressLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.progressValue {
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.progressTrack {
+  width: 100%;
+  height: 0.5rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--secondary);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--primary);
+}
+
+.moduleList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.moduleCard {
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+}
+
+.moduleLocked {
+  opacity: 0.65;
+}
+
+.moduleHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.moduleInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.moduleIndex {
+  margin: 0 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.moduleTitle {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.moduleStatus {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.lockBadge {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  background: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lockIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.completedBadge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 10%, transparent);
+  flex-shrink: 0;
+}
+
+.linkRow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.moduleLink {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.5rem 0.375rem;
+  text-align: center;
+  text-decoration: none;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.theoryLink {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.quizLink {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.practiceLink {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.theoryLink:hover,
+.quizLink:hover,
+.practiceLink:hover {
+  opacity: 0.85;
+}
+
+.lockedHint {
+  margin: 0;
+  padding: 0.25rem 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+.enrollCard {
+  padding: 2rem;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+  text-align: center;
+}
+
+.enrollTitle {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.enrollText {
+  margin: 0 0 1.5rem;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.enrollButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.enrollButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.enrollButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 767px) {
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .linkRow {
+    grid-template-columns: 1fr;
+  }
+
+  .moduleLink {
+    font-size: 0.875rem;
+    padding: 0.625rem 0.75rem;
+  }
+}

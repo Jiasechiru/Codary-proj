@@ -2,7 +2,7 @@ const quizzesService = require("../services/quizzes.service");
 
 async function getQuiz(req, res, next) {
   try {
-    res.json(await quizzesService.getQuizById(Number(req.params.id)));
+    res.json(await quizzesService.getQuizById(Number(req.params.id), req.user.id));
   } catch (error) {
     next(error);
   }

@@ -108,6 +108,60 @@
   border: 1px solid var(--border);
   border-radius: 0.5rem;
   background: var(--background);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.courseCardCompleted {
+  border-color: var(--success);
+}
+
+.courseCardCompleted .progressFill {
+  background: var(--success);
+}
+
+.courseProgressText {
+  margin: 0 0 1rem;
+  font-size: 0.8125rem;
+  color: var(--muted-foreground);
+}
+
+.enrollButton,
+.openCourseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.enrollButton {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.enrollButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.enrollButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.openCourseButton {
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+
+.openCourseButton:hover {
+  opacity: 0.85;
 }
 
 .courseLocked {

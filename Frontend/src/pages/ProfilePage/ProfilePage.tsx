@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import Leader from "../../assets/Icons/leader.svg?react";
@@ -96,6 +97,50 @@ const ProfilePage = () => {
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div className={styles.card}>
+                <h2 className={styles.sectionTitle}>My Courses</h2>
+                {(profile.enrolledCourses ?? []).length > 0 ? (
+                    <div className={styles.coursesList}>
+                        {(profile.enrolledCourses ?? []).map((course) => (
+                            <Link
+                                key={course.courseId}
+                                to={`/app/courses/${course.courseId}`}
+                                className={styles.courseRow}
+                            >
+                                <div className={styles.courseRowInfo}>
+                                    <h3 className={styles.itemTitle}>{course.title}</h3>
+                                    <p className={styles.mutedText}>
+                                        {course.groupTitle ? `${course.groupTitle} • ` : ""}
+                                        {course.level} • {course.language}
+                                    </p>
+                                </div>
+                                <div className={styles.courseRowProgress}>
+                                    <div className={styles.rowBetween}>
+                                        <span>Progress</span>
+                                        <span className={styles.mutedText}>
+                                            {Math.round(course.percentage)}%
+                                        </span>
+                                    </div>
+                                    <div className={styles.progressTrack}>
+                                        <div
+                                            className={styles.progressFill}
+                                            style={{ width: `${course.percentage}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                ) : (
+                    <p className={styles.mutedText}>
+                        You are not enrolled in any courses yet.{" "}
+                        <Link to="/app/courses" className={styles.inlineLink}>
+                            Browse courses
+                        </Link>
+                    </p>
+                )}
             </div>
 
             <div className={styles.card}>

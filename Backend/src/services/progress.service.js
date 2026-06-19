@@ -53,16 +53,17 @@ async function recomputeCourseProgress(userId, courseId) {
 
   const percentage = totalModules === 0 ? 0 : (completedModules / totalModules) * 100;
 
-  await prisma.userProgress.upsert({
+  const existing = await prisma.userProgress.findUnique({
     where: { userId_courseId: { userId, courseId } },
-    create: {
-      userId,
-      courseId,
-      percentage,
-      startDate: new Date(),
-      endDate: percentage === 100 ? new Date() : null,
-    },
-    update: {
+  });
+
+  if (!existing) {
+    return { totalModules, completedModules, percentage: 0 };
+  }
+
+  await prisma.userProgress.update({
+    where: { userId_courseId: { userId, courseId } },
+    data: {
       percentage,
       endDate: percentage === 100 ? new Date() : null,
     },

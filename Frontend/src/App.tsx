@@ -10,6 +10,7 @@ import SettingsPage from './pages/SettingsPage/SettingsPage'
 import ProfilePage from './pages/ProfilePage/ProfilePage'
 import LeaderboardPage from './pages/LeaderboardPage/LeaderboardPage'
 import CoursesPage from './pages/CoursesPage/CoursesPage'
+import CoursePage from './pages/CoursePage/CoursePage'
 import ChatPage from './pages/ChatPage/ChatPage'
 import ProgressPage from './pages/ProgressPage/ProgressPage'
 import TheoryPage from './pages/TheoryPage/TheoryPage'
@@ -31,6 +32,7 @@ function App() {
           <Route path="settings" element={<SettingsPage />} />
           <Route path="leaderboard" element={<LeaderboardPage />} />
           <Route path="courses" element={<CoursesPage />} />
+          <Route path="courses/:courseId" element={<CoursePage />} />
           <Route path="chat" element={<ChatPage />} />
           <Route path="progress" element={<ProgressPage />} />
           <Route path="theory/:topicId" element={<TheoryPage />} />

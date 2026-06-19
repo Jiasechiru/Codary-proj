@@ -13,6 +13,17 @@ export type UserProfile = {
     title: string;
     description: string;
   }>;
+  enrolledCourses: Array<{
+    courseId: number;
+    percentage: number;
+    startDate: string | null;
+    endDate: string | null;
+    title: string;
+    description: string | null;
+    level: string;
+    language: string;
+    groupTitle: string | null;
+  }>;
 };
 
 export type UserActivity = {

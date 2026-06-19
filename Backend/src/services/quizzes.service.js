@@ -4,12 +4,19 @@ const {
   recomputeModuleCompletion,
   recomputeCourseProgress,
 } = require("./progress.service");
+const { isModuleAccessible } = require("./moduleAccess.service");
 
-async function getQuizById(id) {
+async function getQuizById(id, userId) {
   const quiz = await prisma.quiz.findUnique({ where: { id } });
   if (!quiz) {
     throw new AppError("Quiz not found", 404);
   }
+
+  const accessible = await isModuleAccessible(userId, quiz.moduleId);
+  if (!accessible) {
+    throw new AppError("Module is locked. Complete the previous module first.", 403);
+  }
+
   return quiz;
 }
 
@@ -20,6 +27,11 @@ async function submitQuiz(userId, quizId, answer) {
   });
   if (!quiz) {
     throw new AppError("Quiz not found", 404);
+  }
+
+  const accessible = await isModuleAccessible(userId, quiz.moduleId);
+  if (!accessible) {
+    throw new AppError("Module is locked. Complete the previous module first.", 403);
   }
 
   const isCorrect = answer === quiz.correctAnswer;

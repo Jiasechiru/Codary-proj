@@ -4,17 +4,22 @@ import Chevronleft from "../../assets/Icons/chevronleft.svg?react"
 import Correct from "../../assets/Icons/correct.svg?react"
 import Incorrect from "../../assets/Icons/incorrect.svg?react"
 import { getQuiz, submitQuiz, type Quiz } from "../../services/quizzes";
+import { getModule } from "../../services/modules";
 import PageState from "../../components/PageState/PageState";
 import styles from "./QuizPage.module.css";
 
 const QuizPage = () => {
     const { topicId } = useParams();
     const [quiz, setQuiz] = useState<Quiz | null>(null);
+    const [courseId, setCourseId] = useState<number | null>(null);
     const [selectedAnswer, setSelectedAnswer] = useState<string>("");
     const [showResults, setShowResults] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const courseLink = courseId ? `/app/courses/${courseId}` : "/app/courses";
 
     useEffect(() => {
         const loadQuiz = async () => {
@@ -22,6 +27,10 @@ const QuizPage = () => {
             try {
                 const data = await getQuiz(Number(topicId));
                 setQuiz(data);
+                const module = await getModule(data.moduleId);
+                setCourseId(module?.courseId ?? null);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Failed to load quiz.");
             } finally {
                 setIsLoading(false);
             }
@@ -51,6 +60,16 @@ const QuizPage = () => {
         return <PageState kind="loading" title="Loading quiz..." />;
     }
 
+    if (error) {
+        return (
+            <PageState
+                kind="error"
+                title="Unable to open quiz."
+                description={error}
+            />
+        );
+    }
+
     if (!quiz) {
         return <PageState kind="empty" title="Quiz not found." description="This module may not have a quiz yet." />;
     }
@@ -61,9 +80,9 @@ const QuizPage = () => {
         return (
             <div className={styles.page}>
                 <div className={styles.header}>
-                    <Link to="/app/courses" className={styles.backLink}>
+                    <Link to={courseLink} className={styles.backLink}>
                         <Chevronleft className={styles.smallIcon} />
-                        Back to Courses
+                        Back to Course
                     </Link>
                 </div>
 
@@ -119,7 +138,7 @@ const QuizPage = () => {
                         </button>
                         {passed && (
                             <Link
-                                to="/app/courses"
+                                to={courseLink}
                                 className={styles.primaryLink}
                             >
                                 Continue Learning
@@ -136,9 +155,9 @@ const QuizPage = () => {
     return (
         <div className={styles.page}>
             <div className={styles.header}>
-                <Link to="/app/courses" className={styles.backLink}>
+                <Link to={courseLink} className={styles.backLink}>
                     <Chevronleft className={styles.smallIcon} />
-                    Back to Courses
+                    Back to Course
                 </Link>
                 <div className={styles.headerRow}>
                     <h1 className={styles.quizTitle}>Quiz</h1>
