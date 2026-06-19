@@ -4,16 +4,32 @@ import Chevronleft from "../../assets/Icons/chevronleft.svg?react"
 import Light from "../../assets/Icons/light.svg?react"
 import Plain from "../../assets/Icons/plain.svg?react"
 import Aistar from "../../assets/Icons/aistar.svg?react"
+import Correct from "../../assets/Icons/correct.svg?react"
+import Incorrect from "../../assets/Icons/incorrect.svg?react"
 import { sendTaskMessage } from "../../services/ai";
-import { getTask, submitTask, type Task } from "../../services/tasks";
+import {
+    getAttemptResultMessage,
+    getTask,
+    submitTask,
+    waitForAttemptResult,
+    type Task,
+} from "../../services/tasks";
+import { getProgressOverview } from "../../services/progress";
 import PageState from "../../components/PageState/PageState";
 import styles from "./TaskPage.module.css";
+
+type ResultState = {
+    type: "success" | "error" | "pending";
+    message: string;
+} | null;
 
 const TaskPage = () => {
     const { taskId } = useParams();
     const [task, setTask] = useState<Task | null>(null);
     const [code, setCode] = useState("");
-    const [result, setResult] = useState<{ type: "success" | "error"; message: string } | null>(null);
+    const [result, setResult] = useState<ResultState>(null);
+    const [isCompleted, setIsCompleted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [messages, setMessages] = useState([
         { role: "assistant", content: "Hi! I'm here to help you with this task. Feel free to ask questions!" },
     ]);
@@ -24,9 +40,15 @@ const TaskPage = () => {
         const loadTask = async () => {
             if (!taskId) return;
             try {
-                const data = await getTask(Number(taskId));
+                const [data, overview] = await Promise.all([
+                    getTask(Number(taskId)),
+                    getProgressOverview(),
+                ]);
                 setTask(data);
                 setCode(data.starterCode);
+                setIsCompleted(
+                    overview.tasks.some((item) => item.taskId === data.id && item.isCompleted)
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -36,17 +58,28 @@ const TaskPage = () => {
     }, [taskId]);
 
     const handleRun = async () => {
-        if (!task) return;
+        if (!task || isSubmitting) return;
+
+        setIsSubmitting(true);
+        setResult({ type: "pending", message: "Checking your solution..." });
+
         try {
-            const response = await submitTask(task.id, code);
+            const submitResponse = await submitTask(task.id, code);
+            const attemptStatus = await waitForAttemptResult(submitResponse.attemptId);
+            const uiResult = getAttemptResultMessage(attemptStatus);
+
+            setResult(uiResult);
+
+            if (attemptStatus.isCorrect) {
+                setIsCompleted(true);
+            }
+        } catch (error) {
             setResult({
-                type: response.isCorrect ? "success" : "error",
-                message: response.isCorrect
-                    ? "Great job! Your solution works correctly. All test cases passed!"
-                    : "Not quite right. Check the test cases and try again.",
+                type: "error",
+                message: error instanceof Error ? error.message : "Failed to submit solution.",
             });
-        } catch (_error) {
-            setResult({ type: "error", message: "Failed to submit solution." });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -82,6 +115,31 @@ const TaskPage = () => {
         return <PageState kind="empty" title="Task not found." description="Try opening another task from courses." />;
     }
 
+    if (result?.type === "success" && isCompleted) {
+        return (
+            <div className={styles.page}>
+                <div className={styles.header}>
+                    <Link to="/app/courses" className={styles.backLink}>
+                        <Chevronleft className={styles.smallIcon} />
+                        Back to Courses
+                    </Link>
+                </div>
+
+                <div className={`${styles.completionCard} ${styles.centered}`}>
+                    <div className={`${styles.completionIconWrap} ${styles.resultSuccess}`}>
+                        <Correct className={styles.completionIcon} />
+                    </div>
+                    <h1 className={styles.title}>Task Completed!</h1>
+                    <p className={styles.subtitle}>{result.message}</p>
+                    <p className={styles.completionMeta}>Your progress has been saved.</p>
+                    <Link to="/app/courses" className={styles.completionButton}>
+                        Back to Courses
+                    </Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className={styles.page}>
             <div className={styles.header}>
@@ -96,6 +154,9 @@ const TaskPage = () => {
                 <p className={styles.subtitle}>
                     {task.description}
                 </p>
+                {isCompleted ? (
+                    <span className={styles.completedBadge}>Completed</span>
+                ) : null}
             </div>
 
             <div className={styles.requirementsCard}>
@@ -116,6 +177,7 @@ const TaskPage = () => {
                                 <button
                                     onClick={handleHint}
                                     className={styles.hintButton}
+                                    disabled={isSubmitting}
                                 >
                                     <Light className={styles.smallIcon} />
                                     Get Hint
@@ -123,8 +185,9 @@ const TaskPage = () => {
                                 <button
                                     onClick={handleRun}
                                     className={styles.runButton}
+                                    disabled={isSubmitting}
                                 >
-                                    Run Code
+                                    {isSubmitting ? "Checking..." : "Run Code"}
                                 </button>
                             </div>
                         </div>
@@ -133,14 +196,34 @@ const TaskPage = () => {
                             onChange={(e) => setCode(e.target.value)}
                             className={styles.editor}
                             spellCheck={false}
+                            disabled={isSubmitting}
                         />
                     </div>
 
                     {result && (
                         <div
-                            className={`${styles.resultCard} ${result.type === "success" ? styles.resultSuccess : styles.resultError}`}
+                            className={`${styles.resultCard} ${
+                                result.type === "success"
+                                    ? styles.resultSuccess
+                                    : result.type === "pending"
+                                      ? styles.resultPending
+                                      : styles.resultError
+                            }`}
                         >
-                            <p className={styles.resultTitle}>{result.type === "success" ? "Success!" : "Error"}</p>
+                            <div className={styles.resultHeader}>
+                                {result.type === "success" ? (
+                                    <Correct className={styles.resultIcon} />
+                                ) : result.type === "error" ? (
+                                    <Incorrect className={styles.resultIcon} />
+                                ) : null}
+                                <p className={styles.resultTitle}>
+                                    {result.type === "success"
+                                        ? "Success!"
+                                        : result.type === "pending"
+                                          ? "Checking"
+                                          : "Error"}
+                                </p>
+                            </div>
                             <p className={styles.resultText}>{result.message}</p>
                         </div>
                     )}

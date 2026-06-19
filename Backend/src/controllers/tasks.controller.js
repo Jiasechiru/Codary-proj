@@ -30,8 +30,21 @@ async function getAttempts(req, res, next) {
   }
 }
 
+async function getAttemptStatus(req, res, next) {
+  try {
+    const result = await tasksService.getAttemptStatus(
+      req.user.id,
+      Number(req.params.attemptId)
+    );
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getTask,
   submitTask,
   getAttempts,
+  getAttemptStatus,
 };

@@ -6,6 +6,7 @@ const { requireFields } = require("../middlewares/validate.middleware");
 const router = express.Router();
 
 router.use(authMiddleware);
+router.get("/attempts/:attemptId", tasksController.getAttemptStatus);
 router.get("/:id", tasksController.getTask);
 router.post("/:id/submit", requireFields(["code"]), tasksController.submitTask);
 router.get("/:id/attempts", tasksController.getAttempts);

@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
+    "predev": "node scripts/ensure-redis.js && node scripts/ensure-runner-images.js",
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
+    "docker:build": "node scripts/ensure-runner-images.js --force",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "seed": "node prisma/seed.js"
@@ -15,12 +17,17 @@
   "dependencies": {
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.78.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
+    "execa": "^9.6.1",
     "express": "^5.2.1",
+    "ioredis": "^5.11.1",
     "jsonwebtoken": "^9.0.3",
-    "prisma": "^6.19.3"
+    "openai": "^6.42.0",
+    "prisma": "^6.19.3",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

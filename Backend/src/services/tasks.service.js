@@ -1,9 +1,10 @@
 const prisma = require("../prisma/client");
 const AppError = require("../utils/AppError");
-const {
-  recomputeModuleCompletion,
-  recomputeCourseProgress,
-} = require("./progress.service");
+const submissionQueue = require("../queues/submission.queue");
+
+function toSubmissionJobId(attemptId) {
+  return `attempt-${attemptId}`;
+}
 
 async function getTaskById(id) {
   const task = await prisma.task.findUnique({
@@ -17,49 +18,73 @@ async function getTaskById(id) {
 }
 
 async function submitTask(userId, taskId, code) {
-  const task = await prisma.task.findUnique({
-    where: { id: taskId },
-    include: { module: true },
-  });
+  const task = await prisma.task.findUnique({ where: { id: taskId } });
   if (!task) {
     throw new AppError("Task not found", 404);
   }
 
-  const isCorrect = code.includes("correct");
-
   const attempt = await prisma.attempt.create({
-    data: { userId, taskId, code, isCorrect },
+    data: { userId, taskId, code, isCorrect: false },
   });
 
-  if (isCorrect) {
-    await prisma.userTaskProgress.upsert({
-      where: { userId_taskId: { userId, taskId } },
-      create: {
-        userId,
-        taskId,
-        isCompleted: true,
-        completedAt: new Date(),
-      },
-      update: {
-        isCompleted: true,
-        completedAt: new Date(),
-      },
-    });
+  await submissionQueue.add(
+    "check",
+    { attemptId: attempt.id },
+    { jobId: toSubmissionJobId(attempt.id) }
+  );
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { totalPoints: { increment: 10 } },
-    });
+  return { attemptId: attempt.id, status: "pending" };
+}
 
-    await prisma.pointsHistory.create({
-      data: { userId, delta: 10 },
-    });
+async function getAttemptStatus(userId, attemptId) {
+  const attempt = await prisma.attempt.findUnique({
+    where: { id: attemptId },
+    select: { id: true, userId: true, isCorrect: true },
+  });
 
-    await recomputeModuleCompletion(userId, task.moduleId);
-    await recomputeCourseProgress(userId, task.module.courseId);
+  if (!attempt || attempt.userId !== userId) {
+    throw new AppError("Attempt not found", 404);
   }
 
-  return { attempt, isCorrect };
+  const job = await submissionQueue.getJob(toSubmissionJobId(attemptId));
+
+  if (!job) {
+    return {
+      attemptId,
+      status: attempt.isCorrect ? "SUCCESS" : "FAILED",
+      isCorrect: attempt.isCorrect,
+    };
+  }
+
+  const state = await job.getState();
+
+  if (state === "waiting" || state === "active" || state === "delayed") {
+    return { attemptId, status: "pending", isCorrect: false };
+  }
+
+  if (state === "completed") {
+    const result = job.returnvalue || {};
+    return {
+      attemptId,
+      status: result.status || (attempt.isCorrect ? "SUCCESS" : "FAILED"),
+      isCorrect: result.isCorrect ?? attempt.isCorrect,
+    };
+  }
+
+  if (state === "failed") {
+    return {
+      attemptId,
+      status: "RUNTIME_ERROR",
+      isCorrect: false,
+      message: job.failedReason || "Execution failed",
+    };
+  }
+
+  return {
+    attemptId,
+    status: attempt.isCorrect ? "SUCCESS" : "FAILED",
+    isCorrect: attempt.isCorrect,
+  };
 }
 
 function getTaskAttempts(userId, taskId) {
@@ -73,4 +98,5 @@ module.exports = {
   getTaskById,
   submitTask,
   getTaskAttempts,
+  getAttemptStatus,
 };
