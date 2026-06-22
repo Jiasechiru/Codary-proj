@@ -32,7 +32,14 @@ async function register(username, password) {
       passwordHash,
       settings: {
         create: {
-          settings: { theme: "dark", notifications: true },
+          settings: {
+            theme: "dark",
+            language: "ru",
+            notifications: true,
+            aiEnabled: true,
+            autoSuggestions: true,
+            dailyReminders: true,
+          },
         },
       },
     },

@@ -8,7 +8,7 @@
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   padding: 1.5rem;
 }
@@ -163,7 +163,7 @@
 .achievementCard {
   padding: 1rem;
   border-radius: 0.5rem;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
 }
 
 .achievementUnlocked {
@@ -186,10 +186,12 @@
 
 .badgeUnlocked {
   background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
 }
 
 .badgeLocked {
   background: var(--muted);
+  color: var(--muted-foreground);
 }
 
 .badgeIcon {
@@ -206,7 +208,7 @@
 .courseRow {
   display: block;
   padding: 1rem;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   background: var(--background);
   text-decoration: none;

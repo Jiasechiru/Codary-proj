@@ -27,7 +27,7 @@
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   padding: 1.5rem;
 }
@@ -49,18 +49,22 @@
 
 .primaryTint {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
 }
 
 .successTint {
   background: color-mix(in srgb, var(--success) 10%, transparent);
+  color: var(--success);
 }
 
 .warningTint {
   background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
 }
 
 .accentTint {
   background: color-mix(in srgb, var(--accent-foreground) 10%, transparent);
+  color: var(--accent-foreground);
 }
 
 .icon {
@@ -102,7 +106,7 @@
 .innerCard {
   padding: 1rem;
   background: var(--background);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
 }
 
@@ -203,7 +207,7 @@
 
 .challengeCard {
   padding: 1.5rem;
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--primary) 20%, transparent);
   border-radius: 0.5rem;
   background: linear-gradient(
     90deg,
@@ -232,6 +236,58 @@
 
 .inlinePrimaryLink:hover {
   opacity: 0.9;
+}
+
+.inlinePrimaryLink {
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.inlineSecondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: 100%;
+  padding: 0.5rem 1.5rem;
+  border: var(--border-width) solid var(--primary);
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.inlineSecondaryLink:hover {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.challengeChoose {
+  margin: 0 0 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.challengeLanguages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.challengeSolved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--success);
+  font-weight: 500;
+}
+
+.challengeSolvedIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
 }
 
 @media (min-width: 1024px) {

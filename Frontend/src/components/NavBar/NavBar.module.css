@@ -5,7 +5,7 @@
   right: 0;
   height: 4rem;
   background: var(--card);
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
   z-index: 50;
 }
 
@@ -25,19 +25,11 @@
   color: inherit;
 }
 
-.logoContainer {
+.logo {
   width: 2rem;
   height: 2rem;
-  background: var(--primary);
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo {
-  width: 1.25rem;
-  height: 1.25rem;
+  display: block;
+  flex-shrink: 0;
 }
 
 .brandText {

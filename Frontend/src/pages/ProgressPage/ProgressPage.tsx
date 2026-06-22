@@ -5,11 +5,13 @@ import Lightning from "../../assets/Icons/lightning.svg?react"
 import Leader from "../../assets/Icons/leader.svg?react"
 import { getCourses } from "../../services/courses";
 import { getProgressOverview } from "../../services/progress";
-import { getUserActivity, getUserProfile } from "../../services/users";
+import { getUserProfile } from "../../services/users";
+import { useLanguage } from "../../lib/LanguageContext";
 import PageState from "../../components/PageState/PageState";
 import styles from "./ProgressPage.module.css";
 
 const ProgressPage = () => {
+    const { t, locale } = useLanguage();
     const [successRate, setSuccessRate] = useState(0);
     const [streak, setStreak] = useState(0);
     const [totalPoints, setTotalPoints] = useState(0);
@@ -21,15 +23,16 @@ const ProgressPage = () => {
     useEffect(() => {
         const loadProgress = async () => {
             try {
-                const [overview, profile, activity, courses] = await Promise.all([
+                const [overview, profile, courses] = await Promise.all([
                     getProgressOverview(),
                     getUserProfile(),
-                    getUserActivity(),
                     getCourses(),
                 ]);
-                const completedTasks = overview.tasks.filter((task) => task.isCompleted).length;
-                const totalTasks = overview.tasks.length || 1;
-                setSuccessRate(Math.round((completedTasks / totalTasks) * 100));
+
+                const attempts = overview.attempts || { total: 0, correct: 0 };
+                setSuccessRate(
+                    attempts.total > 0 ? Math.round((attempts.correct / attempts.total) * 100) : 0
+                );
                 setStreak(profile?.daysStreak || 0);
                 setTotalPoints(profile?.totalPoints || 0);
 
@@ -37,27 +40,49 @@ const ProgressPage = () => {
                 setCoursesProgress(
                     overview.courses.map((item) => ({
                         courseId: item.courseId,
-                        title: titleMap.get(item.courseId) || `Course #${item.courseId}`,
+                        title: titleMap.get(item.courseId) || t("progress.courseFallback", { id: item.courseId }),
                         percentage: item.percentage,
                     }))
                 );
 
-                const lastWeek = activity.slice(0, 7).reverse();
-                setWeeklyData(
-                    lastWeek.map((item) => ({
-                        day: new Date(item.date).toLocaleDateString(undefined, { weekday: "short" }),
-                        tasks: Math.max(1, Math.round(item.timeSpentSeconds / 1800)),
-                    }))
-                );
+                const dayMs = 24 * 60 * 60 * 1000;
+                const startOfDay = (value: string | number | Date) => {
+                    const d = new Date(value);
+                    d.setHours(0, 0, 0, 0);
+                    return d;
+                };
 
+                const completions = overview.tasks
+                    .filter((task) => task.isCompleted && task.completedAt)
+                    .map((task) => startOfDay(task.completedAt as string).getTime());
+
+                const today = startOfDay(new Date()).getTime();
+                const week = Array.from({ length: 7 }, (_, index) => {
+                    const dayStart = today - (6 - index) * dayMs;
+                    const count = completions.filter(
+                        (time) => time >= dayStart && time < dayStart + dayMs
+                    ).length;
+                    return {
+                        day: new Date(dayStart).toLocaleDateString(locale, { weekday: "short" }),
+                        tasks: count,
+                    };
+                });
+                setWeeklyData(week);
+
+                const countByDay = new Map<number, number>();
+                for (const time of completions) {
+                    countByDay.set(time, (countByDay.get(time) || 0) + 1);
+                }
+                const sortedDays = Array.from(countByDay.keys()).sort((a, b) => a - b);
+                let cumulative = 0;
                 setProgressData(
-                    activity
-                        .slice(0, 12)
-                        .reverse()
-                        .map((item, idx) => ({
-                            month: new Date(item.date).toLocaleDateString(undefined, { month: "short" }),
-                            completed: idx + 1,
-                        }))
+                    sortedDays.map((time) => {
+                        cumulative += countByDay.get(time) || 0;
+                        return {
+                            month: new Date(time).toLocaleDateString(locale, { month: "short", day: "numeric" }),
+                            completed: cumulative,
+                        };
+                    })
                 );
             } finally {
                 setIsLoading(false);
@@ -65,7 +90,7 @@ const ProgressPage = () => {
         };
 
         loadProgress();
-    }, []);
+    }, [t, locale]);
 
     const rankedCourses = useMemo(
         () => coursesProgress.slice().sort((a, b) => b.percentage - a.percentage).slice(0, 5),
@@ -73,14 +98,14 @@ const ProgressPage = () => {
     );
 
     if (isLoading) {
-        return <PageState kind="loading" title="Loading progress..." />;
+        return <PageState kind="loading" title={t("progress.loading")} />;
     }
 
     return (
         <div className={styles.page}>
             <div className={styles.header}>
-                <h1 className={styles.title}>Your Progress</h1>
-                <p className={styles.subtitle}>Track your learning journey and achievements</p>
+                <h1 className={styles.title}>{t("progress.title")}</h1>
+                <p className={styles.subtitle}>{t("progress.subtitle")}</p>
             </div>
 
             <div className={styles.statsGrid}>
@@ -90,7 +115,7 @@ const ProgressPage = () => {
                             <Target className={styles.icon} />
                         </div>
                         <div>
-                            <p className={styles.mutedText}>Success Rate</p>
+                            <p className={styles.mutedText}>{t("progress.successRate")}</p>
                             <p className={styles.statValue}>{successRate}%</p>
                         </div>
                     </div>
@@ -105,11 +130,11 @@ const ProgressPage = () => {
                             <Lightning className={styles.icon} />
                         </div>
                         <div>
-                            <p className={styles.mutedText}>Current Streak</p>
-                            <p className={styles.statValue}>{streak} days</p>
+                            <p className={styles.mutedText}>{t("progress.currentStreak")}</p>
+                            <p className={styles.statValue}>{t("progress.days", { count: streak })}</p>
                         </div>
                     </div>
-                    <p className={styles.mutedText}>Keep it up! 🔥</p>
+                    <p className={styles.mutedText}>{t("progress.keepItUp")}</p>
                 </div>
 
                 <div className={styles.card}>
@@ -118,17 +143,17 @@ const ProgressPage = () => {
                             <Leader className={styles.icon} />
                         </div>
                         <div>
-                            <p className={styles.mutedText}>Total Points</p>
+                            <p className={styles.mutedText}>{t("progress.totalPoints")}</p>
                             <p className={styles.statValue}>{totalPoints.toLocaleString()}</p>
                         </div>
                     </div>
-                    <p className={styles.mutedText}>All earned in real tasks and quizzes</p>
+                    <p className={styles.mutedText}>{t("progress.pointsNote")}</p>
                 </div>
             </div>
 
             <div className={styles.chartsGrid}>
                 <div className={styles.card}>
-                    <h2 className={styles.sectionTitle}>Weekly Activity</h2>
+                    <h2 className={styles.sectionTitle}>{t("progress.weeklyActivity")}</h2>
                     <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={weeklyData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -137,7 +162,7 @@ const ProgressPage = () => {
                             <Tooltip
                                 contentStyle={{
                                     backgroundColor: "#ffffff",
-                                    border: "1px solid #E5E7EB",
+                                    border: "2px solid #E5E7EB",
                                     borderRadius: "8px",
                                 }}
                             />
@@ -147,7 +172,7 @@ const ProgressPage = () => {
                 </div>
 
                 <div className={styles.card}>
-                    <h2 className={styles.sectionTitle}>Progress Over Time</h2>
+                    <h2 className={styles.sectionTitle}>{t("progress.progressOverTime")}</h2>
                     <ResponsiveContainer width="100%" height={250}>
                         <LineChart data={progressData}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
@@ -156,7 +181,7 @@ const ProgressPage = () => {
                             <Tooltip
                                 contentStyle={{
                                     backgroundColor: "#ffffff",
-                                    border: "1px solid #E5E7EB",
+                                    border: "2px solid #E5E7EB",
                                     borderRadius: "8px",
                                 }}
                             />
@@ -167,7 +192,7 @@ const ProgressPage = () => {
             </div>
 
             <div className={styles.card}>
-                <h2 className={styles.sectionTitle}>Course Progress</h2>
+                <h2 className={styles.sectionTitle}>{t("progress.courseProgress")}</h2>
                 <div className={styles.stack}>
                     {rankedCourses.length > 0 ? rankedCourses.map((course) => (
                         <div key={course.courseId}>
@@ -179,7 +204,7 @@ const ProgressPage = () => {
                                 <div className={styles.primaryProgress} style={{ width: `${course.percentage}%` }}></div>
                             </div>
                         </div>
-                    )) : <p className={styles.mutedText}>No course progress yet.</p>}
+                    )) : <p className={styles.mutedText}>{t("progress.noProgress")}</p>}
                 </div>
             </div>
         </div>

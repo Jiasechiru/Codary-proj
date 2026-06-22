@@ -21,7 +21,32 @@ async function submitQuiz(req, res, next) {
   }
 }
 
+async function getModuleQuiz(req, res, next) {
+  try {
+    res.json(
+      await quizzesService.getModuleQuiz(Number(req.params.moduleId), req.user.id)
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function submitModuleQuiz(req, res, next) {
+  try {
+    const result = await quizzesService.submitModuleQuiz(
+      req.user.id,
+      Number(req.params.moduleId),
+      req.body.answers
+    );
+    res.status(201).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   getQuiz,
   submitQuiz,
+  getModuleQuiz,
+  submitModuleQuiz,
 };

@@ -5,8 +5,11 @@ export type Task = {
   moduleId: number;
   title: string;
   description: string;
+  descriptionRu: string | null;
   starterCode: string;
   difficulty: string;
+  requirements: string[] | null;
+  requirementsRu: string[] | null;
   codeTests: Array<{ id: number; input: string; expectedOutput: string }>;
 };
 
@@ -39,7 +42,8 @@ export type TaskAttemptStatus = {
 
 export type TaskResultMessage = {
   type: "success" | "error";
-  message: string;
+  messageKey: string;
+  rawMessage?: string;
 };
 
 export function getTask(taskId: number) {
@@ -87,34 +91,20 @@ export async function waitForAttemptResult(
 export function getAttemptResultMessage(status: TaskAttemptStatus): TaskResultMessage {
   switch (status.status) {
     case "SUCCESS":
-      return {
-        type: "success",
-        message: "Great job! Your solution passed all test cases. Task completed!",
-      };
+      return { type: "success", messageKey: "task.resultSuccess" };
     case "FAILED":
-      return {
-        type: "error",
-        message: "Not all test cases passed. Check your output and try again.",
-      };
+      return { type: "error", messageKey: "task.resultFailed" };
     case "TIME_LIMIT":
-      return {
-        type: "error",
-        message: "Your code exceeded the 3 second time limit.",
-      };
+      return { type: "error", messageKey: "task.resultTimeLimit" };
     case "RUNTIME_ERROR":
       return {
         type: "error",
-        message: status.message || "Your code crashed during execution. Check for runtime errors.",
+        messageKey: "task.resultRuntimeError",
+        rawMessage: status.message || undefined,
       };
     case "COMPILATION_ERROR":
-      return {
-        type: "error",
-        message: "Your code failed to compile. Check syntax and try again.",
-      };
+      return { type: "error", messageKey: "task.resultCompilationError" };
     default:
-      return {
-        type: "error",
-        message: "Something went wrong while checking your solution.",
-      };
+      return { type: "error", messageKey: "task.resultUnknown" };
   }
 }

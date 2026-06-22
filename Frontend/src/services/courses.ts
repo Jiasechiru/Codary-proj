@@ -34,6 +34,8 @@ export type CourseModuleStatus = {
   isLocked: boolean;
   quizId: number | null;
   taskId: number | null;
+  quizCompleted: boolean;
+  taskCompleted: boolean;
 };
 
 export type CourseDetails = {

@@ -5,6 +5,7 @@ export type UserSettingsResponse = {
   userId: number;
   settings: {
     theme?: "dark" | "light";
+    language?: "ru" | "en";
     notifications?: boolean;
     aiEnabled?: boolean;
     autoSuggestions?: boolean;

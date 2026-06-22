@@ -4,11 +4,15 @@ import Moon from "../../assets/Icons/moon.svg?react"
 import Sun from "../../assets/Icons/sun.svg?react"
 import { logout } from "../../services/auth";
 import { getSettings, updateSettings } from "../../services/settings";
+import { applyTheme } from "../../lib/theme";
+import { useLanguage } from "../../lib/LanguageContext";
+import type { Language } from "../../lib/i18n";
 import PageState from "../../components/PageState/PageState";
 import styles from "./SettingsPage.module.css";
 
 const SettingsPage = () => {
     const navigate = useNavigate();
+    const { t, language, setLanguage } = useLanguage();
     const [aiEnabled, setAiEnabled] = useState(true);
     const [notifications, setNotifications] = useState(true);
     const [darkMode, setDarkMode] = useState(false);
@@ -21,11 +25,16 @@ const SettingsPage = () => {
             try {
                 const response = await getSettings();
                 const settings = response?.settings || {};
+                const theme = settings.theme ?? "light";
                 setAiEnabled(settings.aiEnabled ?? true);
                 setNotifications(settings.notifications ?? true);
-                setDarkMode((settings.theme ?? "light") === "dark");
+                setDarkMode(theme === "dark");
                 setAutoSuggestions(settings.autoSuggestions ?? true);
                 setDailyReminders(settings.dailyReminders ?? true);
+                applyTheme(theme);
+                if (settings.language) {
+                    setLanguage(settings.language);
+                }
             } catch (_error) {
                 // Keep defaults when loading fails.
             } finally {
@@ -34,7 +43,7 @@ const SettingsPage = () => {
         };
 
         loadSettings();
-    }, []);
+    }, [setLanguage]);
 
     const saveSettings = async (next: {
         aiEnabled?: boolean;
@@ -42,6 +51,7 @@ const SettingsPage = () => {
         darkMode?: boolean;
         autoSuggestions?: boolean;
         dailyReminders?: boolean;
+        language?: Language;
     }) => {
         try {
             await updateSettings({
@@ -50,6 +60,7 @@ const SettingsPage = () => {
                 theme: (next.darkMode ?? darkMode) ? "dark" : "light",
                 autoSuggestions: next.autoSuggestions ?? autoSuggestions,
                 dailyReminders: next.dailyReminders ?? dailyReminders,
+                language: next.language ?? language,
             });
         } catch (_error) {
             // Ignore save errors silently for now.
@@ -59,8 +70,14 @@ const SettingsPage = () => {
     const toggleDarkMode = async () => {
         const nextDark = !darkMode;
         setDarkMode(nextDark);
-        document.documentElement.classList.toggle("dark", nextDark);
+        applyTheme(nextDark ? "dark" : "light");
         await saveSettings({ darkMode: nextDark });
+    };
+
+    const handleSelectLanguage = async (next: Language) => {
+        if (next === language) return;
+        setLanguage(next);
+        await saveSettings({ language: next });
     };
 
     const handleLogout = async () => {
@@ -72,25 +89,25 @@ const SettingsPage = () => {
     };
 
     if (isLoading) {
-        return <PageState kind="loading" title="Loading settings..." />;
+        return <PageState kind="loading" title={t("settings.loading")} />;
     }
 
     return (
         <div className={styles.page}>
             <div className={styles.header}>
-                <h1 className={styles.title}>Settings</h1>
-                <p className={styles.subtitle}>Manage your preferences and account settings</p>
+                <h1 className={styles.title}>{t("settings.title")}</h1>
+                <p className={styles.subtitle}>{t("settings.subtitle")}</p>
             </div>
 
             <div className={styles.sections}>
                 <div className={styles.card}>
-                    <h2 className={styles.sectionTitle}>AI Assistant</h2>
+                    <h2 className={styles.sectionTitle}>{t("settings.aiAssistant")}</h2>
                     <div className={styles.stack}>
                         <div className={styles.settingRow}>
                             <div>
-                                <p className={styles.settingTitle}>Enable AI Assistant</p>
+                                <p className={styles.settingTitle}>{t("settings.enableAi")}</p>
                                 <p className={styles.settingDescription}>
-                                    Get help from AI while solving tasks
+                                    {t("settings.enableAiDesc")}
                                 </p>
                             </div>
                             <button
@@ -106,9 +123,9 @@ const SettingsPage = () => {
                         </div>
                         <div className={`${styles.settingRow} ${styles.topBorder}`}>
                             <div>
-                                <p className={styles.settingTitle}>Auto-suggestions</p>
+                                <p className={styles.settingTitle}>{t("settings.autoSuggestions")}</p>
                                 <p className={styles.settingDescription}>
-                                    Show code suggestions automatically
+                                    {t("settings.autoSuggestionsDesc")}
                                 </p>
                             </div>
                             <button
@@ -126,12 +143,12 @@ const SettingsPage = () => {
                 </div>
 
                 <div className={styles.card}>
-                    <h2 className={styles.sectionTitle}>Appearance</h2>
+                    <h2 className={styles.sectionTitle}>{t("settings.appearance")}</h2>
                     <div className={styles.settingRow}>
                         <div>
-                            <p className={styles.settingTitle}>Dark Mode</p>
+                            <p className={styles.settingTitle}>{t("settings.darkMode")}</p>
                             <p className={styles.settingDescription}>
-                                Switch between light and dark themes
+                                {t("settings.darkModeDesc")}
                             </p>
                         </div>
                         <button
@@ -150,13 +167,41 @@ const SettingsPage = () => {
                 </div>
 
                 <div className={styles.card}>
-                    <h2 className={styles.sectionTitle}>Notifications</h2>
+                    <h2 className={styles.sectionTitle}>{t("settings.language")}</h2>
+                    <div className={styles.settingRow}>
+                        <div>
+                            <p className={styles.settingTitle}>{t("settings.language")}</p>
+                            <p className={styles.settingDescription}>
+                                {t("settings.languageDesc")}
+                            </p>
+                        </div>
+                        <div className={styles.languageGroup}>
+                            <button
+                                type="button"
+                                onClick={() => handleSelectLanguage("ru")}
+                                className={`${styles.languageButton} ${language === "ru" ? styles.languageButtonActive : ""}`}
+                            >
+                                {t("settings.languageRu")}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleSelectLanguage("en")}
+                                className={`${styles.languageButton} ${language === "en" ? styles.languageButtonActive : ""}`}
+                            >
+                                {t("settings.languageEn")}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div className={styles.card}>
+                    <h2 className={styles.sectionTitle}>{t("settings.notifications")}</h2>
                     <div className={styles.stack}>
                         <div className={styles.settingRow}>
                             <div>
-                                <p className={styles.settingTitle}>Email Notifications</p>
+                                <p className={styles.settingTitle}>{t("settings.emailNotifications")}</p>
                                 <p className={styles.settingDescription}>
-                                    Receive updates about your progress
+                                    {t("settings.emailNotificationsDesc")}
                                 </p>
                             </div>
                             <button
@@ -172,9 +217,9 @@ const SettingsPage = () => {
                         </div>
                         <div className={`${styles.settingRow} ${styles.topBorder}`}>
                             <div>
-                                <p className={styles.settingTitle}>Daily Reminders</p>
+                                <p className={styles.settingTitle}>{t("settings.dailyReminders")}</p>
                                 <p className={styles.settingDescription}>
-                                    Get reminded to practice daily
+                                    {t("settings.dailyRemindersDesc")}
                                 </p>
                             </div>
                             <button
@@ -192,23 +237,23 @@ const SettingsPage = () => {
                 </div>
 
                 <div className={styles.card}>
-                    <h2 className={styles.sectionTitle}>Account</h2>
+                    <h2 className={styles.sectionTitle}>{t("settings.account")}</h2>
                     <div className={styles.actions}>
                         <button className={styles.secondaryButton}>
-                            Change Password
+                            {t("settings.changePassword")}
                         </button>
                         <button className={styles.secondaryButton}>
-                            Update Email
+                            {t("settings.updateEmail")}
                         </button>
                         <button
                             type="button"
                             onClick={handleLogout}
                             className={styles.logoutButton}
                         >
-                            Log Out
+                            {t("settings.logout")}
                         </button>
                         <button className={styles.dangerButton}>
-                            Delete Account
+                            {t("settings.deleteAccount")}
                         </button>
                     </div>
                 </div>

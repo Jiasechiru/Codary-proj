@@ -39,7 +39,7 @@
 .contentCard {
   margin-bottom: 1.5rem;
   background: var(--card);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   padding: 2rem;
 }
@@ -84,6 +84,14 @@
   font-size: 0.875rem;
 }
 
+.prose {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: var(--foreground);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
 .list {
   margin: 0;
   padding-left: 1.25rem;
@@ -106,7 +114,7 @@
   box-sizing: border-box;
   max-width: 100%;
   padding: 0.5rem 1rem;
-  border: none;
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   cursor: pointer;
   text-decoration: none;

@@ -6,6 +6,12 @@ const { requireFields } = require("../middlewares/validate.middleware");
 const router = express.Router();
 
 router.use(authMiddleware);
+router.get("/module/:moduleId", quizzesController.getModuleQuiz);
+router.post(
+  "/module/:moduleId/submit",
+  requireFields(["answers"]),
+  quizzesController.submitModuleQuiz
+);
 router.get("/:id", quizzesController.getQuiz);
 router.post("/:id/submit", requireFields(["answer"]), quizzesController.submitQuiz);
 

@@ -5,7 +5,7 @@
   width: 16rem;
   height: calc(100vh - 4rem);
   background: var(--card);
-  border-right: 1px solid var(--border);
+  border-right: var(--border-width) solid var(--border);
   transition: width 0.3s ease;
   display: flex;
   flex-direction: column;
@@ -75,7 +75,7 @@
 
 .footer {
   padding: 1rem;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-width) solid var(--border);
 }
 
 .toggleButton {
@@ -172,7 +172,7 @@
     padding: 1rem;
     padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
     background: var(--card);
-    border-top: 1px solid var(--border);
+    border-top: var(--border-width) solid var(--border);
     border-radius: 0.75rem 0.75rem 0 0;
     box-shadow: 0 -4px 24px color-mix(in srgb, var(--foreground) 12%, transparent);
     pointer-events: auto;

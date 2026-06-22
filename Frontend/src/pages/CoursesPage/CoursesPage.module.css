@@ -18,6 +18,70 @@
   color: var(--muted-foreground);
 }
 
+.controlsCard {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border: var(--border-width) solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.controlLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.controlButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.controlButton {
+  padding: 0.5rem 1rem;
+  border: var(--border-width) solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.controlButton:hover {
+  background: var(--secondary);
+}
+
+.controlButtonActive {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.controlButtonActive:hover {
+  background: var(--primary);
+}
+
+.emptyState {
+  padding: 2rem 1.5rem;
+  border: var(--border-width) dashed var(--border);
+  border-radius: 0.5rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
 .categoryList {
   display: flex;
   flex-direction: column;
@@ -25,7 +89,7 @@
 }
 
 .categoryCard {
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   overflow: hidden;
   background: var(--card);
@@ -90,6 +154,7 @@
 .chevronIcon {
   width: 1.25rem;
   height: 1.25rem;
+  color: var(--foreground);
 }
 
 .expandedContent {
@@ -104,11 +169,18 @@
 
 .courseCard {
   min-width: 0;
+  box-sizing: border-box;
   padding: 1.25rem;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   background: var(--background);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.courseFooter {
+  margin-top: auto;
 }
 
 .courseCardCompleted {
@@ -132,7 +204,6 @@
   justify-content: center;
   width: 100%;
   padding: 0.625rem 1rem;
-  border: none;
   border-radius: 0.5rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -142,6 +213,7 @@
 }
 
 .enrollButton {
+  border: none;
   background: var(--primary);
   color: var(--primary-foreground);
 }
@@ -158,6 +230,7 @@
 .openCourseButton {
   background: var(--secondary);
   color: var(--secondary-foreground);
+  border: var(--border-width) solid var(--border);
 }
 
 .openCourseButton:hover {
@@ -304,6 +377,19 @@
 
   .expandedContent {
     padding: 0.5rem 1rem 1rem;
+  }
+
+  .controlsCard {
+    padding: 1rem;
+  }
+
+  .controlButtons {
+    flex-direction: column;
+  }
+
+  .controlButton {
+    width: 100%;
+    text-align: left;
   }
 
   .courseHeader {

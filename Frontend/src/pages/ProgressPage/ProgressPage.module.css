@@ -27,7 +27,7 @@
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   padding: 1.5rem;
 }
@@ -50,14 +50,17 @@
 
 .successTint {
   background: color-mix(in srgb, var(--success) 10%, transparent);
+  color: var(--success);
 }
 
 .primaryTint {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
 }
 
 .warningTint {
   background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
 }
 
 .icon {

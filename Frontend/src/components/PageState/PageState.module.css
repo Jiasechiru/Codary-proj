@@ -1,5 +1,5 @@
 .wrap {
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   background: var(--card);
   border-radius: 0.5rem;
   padding: 1rem 1.25rem;

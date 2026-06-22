@@ -2,25 +2,34 @@ import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import LogoBlueBackground from "../../assets/Icons/LogoBlueBackground.svg"
 import { register } from "../../services/auth";
+import { useLanguage } from "../../lib/LanguageContext";
 import styles from "./RegPage.module.css";
 
 const RegPage = () => {
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+
+        if (password !== confirmPassword) {
+            setError(t("reg.passwordMismatch"));
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
             await register(username, password);
             navigate("/app");
         } catch (requestError) {
-            setError(requestError instanceof Error ? requestError.message : "Failed to create account");
+            setError(requestError instanceof Error ? requestError.message : t("reg.failed"));
         } finally {
             setIsSubmitting(false);
         }
@@ -31,20 +40,18 @@ const RegPage = () => {
             <div className={styles.container}>
                 <div className={styles.header}>
                     <div className={styles.brand}>
-                        <div className={styles.logoContainer}>
-                            <img src={LogoBlueBackground} className={styles.logo} />
-                        </div>
+                        <img src={LogoBlueBackground} alt="Codary" className={styles.logo} />
                         <span className={styles.brandText}>CodeMentor AI</span>
                     </div>
-                    <h1 className={styles.title}>Create your account</h1>
-                    <p className={styles.subtitle}>Start learning to code with AI assistance</p>
+                    <h1 className={styles.title}>{t("reg.title")}</h1>
+                    <p className={styles.subtitle}>{t("reg.subtitle")}</p>
                 </div>
 
                 <div className={styles.card}>
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.field}>
                             <label htmlFor="username" className={styles.label}>
-                                Username
+                                {t("reg.username")}
                             </label>
                             <input
                                 id="username"
@@ -52,14 +59,14 @@ const RegPage = () => {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 className={styles.input}
-                                placeholder="john_doe"
+                                placeholder={t("reg.usernamePlaceholder")}
                                 required
                             />
                         </div>
 
                         <div className={styles.field}>
                             <label htmlFor="password" className={styles.label}>
-                                Password
+                                {t("reg.password")}
                             </label>
                             <input
                                 id="password"
@@ -72,18 +79,33 @@ const RegPage = () => {
                             />
                         </div>
 
+                        <div className={styles.field}>
+                            <label htmlFor="confirmPassword" className={styles.label}>
+                                {t("reg.confirmPassword")}
+                            </label>
+                            <input
+                                id="confirmPassword"
+                                type="password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                className={styles.input}
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+
                         {error ? <p className={styles.errorText}>{error}</p> : null}
 
                         <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-                            {isSubmitting ? "Creating..." : "Create Account"}
+                            {isSubmitting ? t("reg.creating") : t("reg.createAccount")}
                         </button>
                     </form>
 
                     <div className={styles.footer}>
                         <p className={styles.footerText}>
-                            Already have an account?{" "}
+                            {t("reg.haveAccount")}{" "}
                             <Link to="/login" className={styles.footerLink}>
-                                Sign in
+                                {t("reg.signIn")}
                             </Link>
                         </p>
                     </div>

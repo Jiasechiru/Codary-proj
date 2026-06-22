@@ -1,4 +1,6 @@
-import { Routes, Route } from "react-router-dom"
+import { useEffect } from "react"
+import { Routes, Route, useLocation } from "react-router-dom"
+import { syncThemeForPath } from './lib/theme'
 import Layout from './components/Layout/Layout'
 import AuthGuard from './components/AuthGuard/AuthGuard'
 import LandingPage from './pages/LandingPage/LandingPage'
@@ -16,9 +18,16 @@ import ProgressPage from './pages/ProgressPage/ProgressPage'
 import TheoryPage from './pages/TheoryPage/TheoryPage'
 import QuizPage from './pages/QuizPage/QuizPage'
 import TaskPage from './pages/TaskPage/TaskPage'
+import DailyChallengePage from './pages/DailyChallengePage/DailyChallengePage'
 import "./styles/Theme.css"
 
 function App() {
+  const location = useLocation()
+
+  useEffect(() => {
+    syncThemeForPath(location.pathname)
+  }, [location.pathname])
+
   return (
     <Layout>
       <Routes>
@@ -38,6 +47,7 @@ function App() {
           <Route path="theory/:topicId" element={<TheoryPage />} />
           <Route path="quiz/:topicId" element={<QuizPage />} />
           <Route path="task/:taskId" element={<TaskPage />} />
+          <Route path="daily-challenge/:language" element={<DailyChallengePage />} />
         </Route>
       </Routes>
     </Layout>

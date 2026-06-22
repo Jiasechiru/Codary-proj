@@ -8,6 +8,7 @@ const quizzesRoutes = require("./quizzes.routes");
 const progressRoutes = require("./progress.routes");
 const aiRoutes = require("./ai.routes");
 const leaderboardRoutes = require("./leaderboard.routes");
+const dailyChallengeRoutes = require("./dailyChallenge.routes");
 
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.use("/quizzes", quizzesRoutes);
 router.use("/progress", progressRoutes);
 router.use("/ai", aiRoutes);
 router.use("/leaderboard", leaderboardRoutes);
+router.use("/daily-challenge", dailyChallengeRoutes);
 
 module.exports = router;

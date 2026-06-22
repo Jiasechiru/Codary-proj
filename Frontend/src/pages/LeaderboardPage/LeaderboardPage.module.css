@@ -18,6 +18,7 @@
   height: 2.5rem;
   border-radius: 0.5rem;
   background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -48,7 +49,7 @@
 
 .card {
   padding: 1.5rem;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   background: var(--card);
 }
@@ -71,14 +72,17 @@
 
 .primaryTint {
   background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
 }
 
 .warningTint {
   background: color-mix(in srgb, var(--warning) 10%, transparent);
+  color: var(--warning);
 }
 
 .successTint {
   background: color-mix(in srgb, var(--success) 10%, transparent);
+  color: var(--success);
 }
 
 .statIcon {
@@ -105,7 +109,7 @@
 }
 
 .tableCard {
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   overflow: hidden;
   background: var(--card);
@@ -113,7 +117,7 @@
 
 .tableHeader {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: var(--border-width) solid var(--border);
 }
 
 .sectionTitle {
@@ -129,7 +133,7 @@
 
 .tableRow {
   padding: 1rem 1.5rem;
-  border-top: 1px solid var(--border);
+  border-top: var(--border-width) solid var(--border);
 }
 
 .currentUserRow {
@@ -247,7 +251,7 @@
   margin-top: 1.5rem;
   padding: 1.5rem;
   border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+  border: var(--border-width) solid color-mix(in srgb, var(--primary) 20%, transparent);
   background: linear-gradient(
     90deg,
     color-mix(in srgb, var(--primary) 10%, transparent),

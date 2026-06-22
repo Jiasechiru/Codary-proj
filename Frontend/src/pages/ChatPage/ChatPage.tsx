@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Breaks from "../../assets/Icons/breaks.svg?react"
 import Light from "../../assets/Icons/light.svg?react"
 import Book from "../../assets/Icons/book.svg?react"
@@ -6,25 +6,49 @@ import Help from "../../assets/Icons/help.svg?react"
 import Aistar from "../../assets/Icons/aistar.svg?react"
 import Reset from "../../assets/Icons/reset.svg?react"
 import Plain from "../../assets/Icons/plain.svg?react"
-import { getGlobalChatHistory, sendGlobalMessage } from "../../services/ai";
+import {
+  appendStreamingDelta,
+  finalizeStreamingMessage,
+  getGlobalChatHistory,
+  replaceStreamingWithError,
+  resetGlobalChatContext,
+  streamGlobalMessage,
+  type ChatMessage,
+} from "../../services/ai";
+import ChatAssistantContent from "../../components/ChatAssistantContent/ChatAssistantContent";
+import { useLanguage } from "../../lib/LanguageContext";
 import styles from "./ChatPage.module.css";
 
-const initialMessage = {
-  role: "assistant",
-  content: "Hi! I'm your AI coding mentor. I can help you with programming concepts, debugging, code reviews, and answering questions. How can I assist you today?",
-};
-
 const ChatPage = () => {
-  const [messages, setMessages] = useState([initialMessage]);
+  const { t } = useLanguage();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialMessage: ChatMessage = {
+    role: "assistant",
+    content: t("chat.greeting"),
+  };
+  const [messages, setMessages] = useState<ChatMessage[]>([initialMessage]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [hasHistory, setHasHistory] = useState(false);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isSending]);
 
   useEffect(() => {
     const loadHistory = async () => {
       try {
         const history = await getGlobalChatHistory();
         if (history.length > 0) {
-          setMessages(history.map((item) => ({ role: item.role, content: item.message })));
+          setMessages(
+            history.map((item) => ({
+              id: item.id,
+              role: item.role,
+              content: item.message,
+            }))
+          );
+          setHasHistory(true);
         }
       } catch (_error) {
         // Keep local initial message when history fails.
@@ -34,28 +58,68 @@ const ChatPage = () => {
     loadHistory();
   }, []);
 
-  const handleResetContext = () => {
-    setMessages([initialMessage]);
-    setInput("");
+  const showPrompts =
+    !hasHistory &&
+    messages.length === 1 &&
+    messages[0].role === "assistant" &&
+    !isSending;
+
+  const handleResetContext = async () => {
+    if (isResetting || isSending) return;
+
+    setIsResetting(true);
+    try {
+      const result = await resetGlobalChatContext();
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: result.message.id,
+          role: "system",
+          content: result.message.message,
+        },
+      ]);
+      setHasHistory(true);
+    } catch (_error) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "system", content: t("chat.failed") },
+      ]);
+    } finally {
+      setIsResetting(false);
+    }
   };
 
   const sendMessage = async (rawMessage: string) => {
     const userMessage = rawMessage.trim();
-    if (!userMessage) return;
+    if (!userMessage || isSending) return;
 
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setInput("");
     setIsSending(true);
+    setHasHistory(true);
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: userMessage },
+      { role: "assistant", content: "", isStreaming: true },
+    ]);
 
     try {
-      const response = await sendGlobalMessage(userMessage);
-      setMessages((prev) => [...prev, { role: "assistant", content: response.response }]);
+      await streamGlobalMessage(userMessage, {
+        onDelta: (delta) => {
+          setMessages((prev) => appendStreamingDelta(prev, delta));
+        },
+        onDone: (message) => {
+          setMessages((prev) => finalizeStreamingMessage(prev, message));
+          setIsSending(false);
+        },
+        onError: (message) => {
+          const content =
+            message.toLowerCase().includes("disabled") ? t("chat.aiDisabled") : t("chat.failed");
+          setMessages((prev) => replaceStreamingWithError(prev, content));
+          setIsSending(false);
+        },
+      });
     } catch (_error) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "Failed to get AI response. Please try again." },
-      ]);
-    } finally {
+      setMessages((prev) => replaceStreamingWithError(prev, t("chat.failed")));
       setIsSending(false);
     }
   };
@@ -67,23 +131,23 @@ const ChatPage = () => {
   const quickPrompts = [
     {
       icon: Breaks,
-      label: "Explain a concept",
-      prompt: "Can you explain how JavaScript closures work?",
+      label: t("chat.prompt1Label"),
+      prompt: t("chat.prompt1Text"),
     },
     {
       icon: Light,
-      label: "Debug my code",
-      prompt: "I'm getting an error in my code. Can you help me debug it?",
+      label: t("chat.prompt2Label"),
+      prompt: t("chat.prompt2Text"),
     },
     {
       icon: Book,
-      label: "Learn best practices",
-      prompt: "What are the best practices for writing React components?",
+      label: t("chat.prompt3Label"),
+      prompt: t("chat.prompt3Text"),
     },
     {
       icon: Help,
-      label: "Ask anything",
-      prompt: "How do I get started with TypeScript?",
+      label: t("chat.prompt4Label"),
+      prompt: t("chat.prompt4Text"),
     },
   ];
 
@@ -101,25 +165,27 @@ const ChatPage = () => {
               <Aistar className={styles.titleIcon} />
             </div>
             <div>
-              <h1 className={styles.title}>AI Chat Assistant</h1>
-              <p className={styles.subtitle}>Get help with your programming questions anytime</p>
+              <h1 className={styles.title}>{t("chat.title")}</h1>
+              <p className={styles.subtitle}>{t("chat.subtitle")}</p>
             </div>
           </div>
           <button
             onClick={handleResetContext}
+            disabled={isResetting || isSending}
             className={styles.resetButton}
+            title={t("chat.reset")}
           >
             <Reset className={styles.smallIcon} />
-            Reset Chat
+            {isResetting ? t("chat.resetting") : t("chat.reset")}
           </button>
         </div>
       </div>
 
       <div className={styles.chatCard}>
         <div className={styles.messagesArea}>
-          {messages.length === 1 && (
+          {showPrompts && (
             <div className={styles.promptsSection}>
-              <p className={styles.helperText}>Try asking me about:</p>
+              <p className={styles.helperText}>{t("chat.tryAsking")}</p>
               <div className={styles.promptsGrid}>
                 {quickPrompts.map((item, idx) => {
                   const Icon = item.icon;
@@ -145,24 +211,40 @@ const ChatPage = () => {
             </div>
           )}
 
-          {messages.map((msg, idx) => (
-            <div
-              key={idx}
-              className={`${styles.messageRow} ${msg.role === "user" ? styles.messageRight : styles.messageLeft}`}
-            >
+          {messages.map((msg, idx) => {
+            if (msg.role === "system") {
+              return (
+                <div key={msg.id ?? idx} className={`${styles.messageRow} ${styles.messageCenter}`}>
+                  <span className={styles.systemNotice}>{msg.content}</span>
+                </div>
+              );
+            }
+
+            return (
               <div
-                className={`${styles.bubble} ${msg.role === "user" ? styles.userBubble : styles.assistantBubble}`}
+                key={msg.id ?? idx}
+                className={`${styles.messageRow} ${msg.role === "user" ? styles.messageRight : styles.messageLeft}`}
               >
-                {msg.role === "assistant" && (
-                  <div className={styles.bubbleHeader}>
-                    <Aistar className={styles.smallIcon} />
-                    <span className={styles.bubbleLabel}>AI Assistant</span>
-                  </div>
-                )}
-                <p className={styles.bubbleText}>{msg.content}</p>
+                <div
+                  className={`${styles.bubble} ${msg.role === "user" ? styles.userBubble : styles.assistantBubble}`}
+                >
+                  {msg.role === "assistant" ? (
+                    <ChatAssistantContent
+                      content={msg.content}
+                      isStreaming={msg.isStreaming}
+                      showHeader
+                      headerLabel={t("chat.assistantLabel")}
+                      textClassName={styles.bubbleText}
+                    />
+                  ) : (
+                    <p className={styles.bubbleText}>{msg.content}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
+
+          <div ref={messagesEndRef} />
         </div>
 
         <div className={styles.footer}>
@@ -171,9 +253,10 @@ const ChatPage = () => {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-              placeholder="Ask me anything about programming..."
+              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+              placeholder={t("chat.inputPlaceholder")}
               className={styles.input}
+              disabled={isSending}
             />
             <button
               onClick={handleSendMessage}
@@ -181,11 +264,11 @@ const ChatPage = () => {
               className={styles.sendButton}
             >
               <Plain className={styles.smallIcon} />
-              <span>Send</span>
+              <span>{t("chat.send")}</span>
             </button>
           </div>
           <p className={styles.disclaimer}>
-            AI responses are generated to assist your learning. Always verify important information.
+            {t("chat.disclaimer")}
           </p>
         </div>
       </div>

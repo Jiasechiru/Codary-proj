@@ -2,10 +2,12 @@ import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import LogoBlueBackground from "../../assets/Icons/LogoBlueBackground.svg"
 import { login } from "../../services/auth";
+import { useLanguage } from "../../lib/LanguageContext";
 import styles from "./LoginPage.module.css";
 
 const LoginPage = () => {
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -20,7 +22,7 @@ const LoginPage = () => {
             await login(username, password);
             navigate("/app");
         } catch (requestError) {
-            setError(requestError instanceof Error ? requestError.message : "Failed to sign in");
+            setError(requestError instanceof Error ? requestError.message : t("login.failed"));
         } finally {
             setIsSubmitting(false);
         }
@@ -31,20 +33,18 @@ const LoginPage = () => {
             <div className={styles.container}>
                 <div className={styles.header}>
                     <div className={styles.brand}>
-                        <div className={styles.logoContainer}>
-                            <img src={LogoBlueBackground} className={styles.logo} />
-                        </div>
+                        <img src={LogoBlueBackground} alt="Codary" className={styles.logo} />
                         <span className={styles.brandText}>CodeMentor AI</span>
                     </div>
-                    <h1 className={styles.title}>Welcome back</h1>
-                    <p className={styles.subtitle}>Sign in to continue your learning journey</p>
+                    <h1 className={styles.title}>{t("login.welcome")}</h1>
+                    <p className={styles.subtitle}>{t("login.subtitle")}</p>
                 </div>
 
                 <div className={styles.card}>
                     <form onSubmit={handleSubmit} className={styles.form}>
                         <div className={styles.field}>
-                            <label htmlFor="email" className={styles.label}>
-                                Username
+                            <label htmlFor="username" className={styles.label}>
+                                {t("login.username")}
                             </label>
                             <input
                                 id="username"
@@ -52,14 +52,14 @@ const LoginPage = () => {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 className={styles.input}
-                                placeholder="your_username"
+                                placeholder={t("login.usernamePlaceholder")}
                                 required
                             />
                         </div>
 
                         <div className={styles.field}>
                             <label htmlFor="password" className={styles.label}>
-                                Password
+                                {t("login.password")}
                             </label>
                             <input
                                 id="password"
@@ -75,15 +75,15 @@ const LoginPage = () => {
                         {error ? <p className={styles.errorText}>{error}</p> : null}
 
                         <button type="submit" className={styles.submitButton} disabled={isSubmitting}>
-                            {isSubmitting ? "Signing In..." : "Sign In"}
+                            {isSubmitting ? t("login.signingIn") : t("login.signIn")}
                         </button>
                     </form>
 
                     <div className={styles.footer}>
                         <p className={styles.footerText}>
-                            Don't have an account?{" "}
+                            {t("login.noAccount")}{" "}
                             <Link to="/register" className={styles.footerLink}>
-                                Sign up
+                                {t("login.signUp")}
                             </Link>
                         </p>
                     </div>

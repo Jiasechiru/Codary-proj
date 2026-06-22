@@ -8,9 +8,7 @@ const NavBar = () => {
         <nav className={styles.nav}>
             <div className={styles.content}>
                 <Link to="/app" className={styles.brand}>
-                    <div className={styles.logoContainer}>
-                        <img src={LogoBlueBackground} className={styles.logo} />
-                    </div>
+                    <img src={LogoBlueBackground} alt="Codary" className={styles.logo} />
                     <span className={styles.brandText}>Codary</span>
                 </Link>
 

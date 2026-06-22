@@ -1,0 +1,8 @@
+.wrapper {
+  width: 100%;
+}
+
+.fallback {
+  width: 100%;
+  background: var(--muted);
+}

@@ -6,6 +6,7 @@ import Award from "../../assets/Icons/award.svg?react"
 import { useEffect, useMemo, useState } from "react";
 import { getLeaderboard, type LeaderboardEntry } from "../../services/leaderboard";
 import { me } from "../../services/auth";
+import { useLanguage } from "../../lib/LanguageContext";
 import PageState from "../../components/PageState/PageState";
 import styles from "./LeaderboardPage.module.css";
 
@@ -25,6 +26,7 @@ const getRankIcon = (rank: number) => {
 };
 
 const LeaderboardPage = () => {
+    const { t } = useLanguage();
     const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
     const [currentUserId, setCurrentUserId] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +56,7 @@ const LeaderboardPage = () => {
             : 0;
 
     if (isLoading) {
-        return <PageState kind="loading" title="Loading leaderboard..." />;
+        return <PageState kind="loading" title={t("leaderboard.loading")} />;
     }
 
     return (
@@ -65,8 +67,8 @@ const LeaderboardPage = () => {
                         <Leader className={styles.headerIcon} />
                     </div>
                     <div>
-                        <h1 className={styles.title}>Leaderboard</h1>
-                        <p className={styles.subtitle}>See how you rank among other learners</p>
+                        <h1 className={styles.title}>{t("leaderboard.title")}</h1>
+                        <p className={styles.subtitle}>{t("leaderboard.subtitle")}</p>
                     </div>
                 </div>
             </div>
@@ -78,12 +80,12 @@ const LeaderboardPage = () => {
                             <Progress className={styles.statIcon} />
                         </div>
                         <div>
-                            <p className={styles.mutedText}>Your Rank</p>
+                            <p className={styles.mutedText}>{t("leaderboard.yourRank")}</p>
                             <p className={styles.statValue}>{currentRank > 0 ? `#${currentRank}` : "-"}</p>
                         </div>
                     </div>
                     <p className={styles.mutedText}>
-                        {currentRank > 0 ? `Top ${Math.ceil((currentRank / entries.length) * 100)}% of learners` : "No rank yet"}
+                        {currentRank > 0 ? t("leaderboard.topPercent", { percent: Math.ceil((currentRank / entries.length) * 100) }) : t("leaderboard.noRank")}
                     </p>
                 </div>
 
@@ -93,11 +95,11 @@ const LeaderboardPage = () => {
                             <Leader className={styles.statIcon} />
                         </div>
                         <div>
-                            <p className={styles.mutedText}>Total Points</p>
+                            <p className={styles.mutedText}>{t("leaderboard.totalPoints")}</p>
                             <p className={styles.statValue}>{currentPoints.toLocaleString()}</p>
                         </div>
                     </div>
-                    <p className={styles.successText}>Keep learning to climb up</p>
+                    <p className={styles.successText}>{t("leaderboard.keepClimbing")}</p>
                 </div>
 
                 <div className={styles.card}>
@@ -106,17 +108,17 @@ const LeaderboardPage = () => {
                             <Award className={styles.statIcon} />
                         </div>
                         <div>
-                            <p className={styles.mutedText}>Next Rank</p>
+                            <p className={styles.mutedText}>{t("leaderboard.nextRank")}</p>
                             <p className={styles.statValue}>{currentRank > 1 ? `#${currentRank - 1}` : "#1"}</p>
                         </div>
                     </div>
-                    <p className={styles.mutedText}>{nextPoints} points to go</p>
+                    <p className={styles.mutedText}>{t("leaderboard.pointsToGo", { count: nextPoints })}</p>
                 </div>
             </div>
 
             <div className={styles.tableCard}>
                 <div className={styles.tableHeader}>
-                    <h2 className={styles.sectionTitle}>Top Learners</h2>
+                    <h2 className={styles.sectionTitle}>{t("leaderboard.topLearners")}</h2>
                 </div>
 
                 <div className={styles.tableBody}>
@@ -154,7 +156,7 @@ const LeaderboardPage = () => {
 
                                     <div className={styles.pointsBlock}>
                                         <p className={styles.points}>{user.totalPoints.toLocaleString()}</p>
-                                        <p className={styles.pointsLabel}>points</p>
+                                        <p className={styles.pointsLabel}>{t("leaderboard.points")}</p>
                                     </div>
                                 </div>
                             </div>
@@ -164,12 +166,12 @@ const LeaderboardPage = () => {
             </div>
 
             <div className={styles.tipsCard}>
-                <h3 className={styles.sectionTitle}>How to climb the leaderboard</h3>
+                <h3 className={styles.sectionTitle}>{t("leaderboard.howToTitle")}</h3>
                 <ul className={styles.tipsList}>
-                    <li>• Complete tasks to earn points</li>
-                    <li>• Maintain your daily streak for bonus points</li>
-                    <li>• Achieve perfect scores on tasks for extra rewards</li>
-                    <li>• Unlock achievements to boost your ranking</li>
+                    <li>• {t("leaderboard.tip1")}</li>
+                    <li>• {t("leaderboard.tip2")}</li>
+                    <li>• {t("leaderboard.tip3")}</li>
+                    <li>• {t("leaderboard.tip4")}</li>
                 </ul>
             </div>
         </div>

@@ -8,6 +8,7 @@ import Breaks from "../../assets/Icons/breaks.svg?react";
 import Target from "../../assets/Icons/target.svg?react";
 import Award from "../../assets/Icons/award.svg?react";
 import { getUserActivity, getUserProfile, type UserActivity, type UserProfile } from "../../services/users";
+import { useLanguage } from "../../lib/LanguageContext";
 import PageState from "../../components/PageState/PageState";
 import styles from "./ProfilePage.module.css";
 
@@ -32,6 +33,7 @@ function formatTimeSpent(seconds: number) {
 
 const ProfilePage = () => {
     const navigate = useNavigate();
+    const { t, locale } = useLanguage();
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [activity, setActivity] = useState<UserActivity[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +49,7 @@ const ProfilePage = () => {
                 setProfile(profileData);
                 setActivity(activityData);
             } catch (requestError) {
-                const message = requestError instanceof Error ? requestError.message : "Failed to load profile";
+                const message = requestError instanceof Error ? requestError.message : t("profile.loadFailed");
                 setError(message);
 
                 if (message.toLowerCase().includes("unauthorized")) {
@@ -59,16 +61,16 @@ const ProfilePage = () => {
         };
 
         fetchProfileData();
-    }, [navigate]);
+    }, [navigate, t]);
 
     const recentActivity = useMemo(() => activity.slice(0, 3), [activity]);
 
     if (isLoading) {
-        return <PageState kind="loading" title="Loading profile..." />;
+        return <PageState kind="loading" title={t("profile.loading")} />;
     }
 
     if (error || !profile) {
-        return <PageState kind="error" title={error || "Profile is unavailable."} />;
+        return <PageState kind="error" title={error || t("profile.unavailable")} />;
     }
 
     return (
@@ -84,15 +86,15 @@ const ProfilePage = () => {
                         <div className={styles.statsRow}>
                             <div>
                                 <p className={styles.statValue}>{profile.completedTasks}</p>
-                                <p className={styles.mutedText}>Tasks Completed</p>
+                                <p className={styles.mutedText}>{t("profile.tasksCompleted")}</p>
                             </div>
                             <div>
                                 <p className={styles.statValue}>{formatTimeSpent(profile.totalTimeSpentSeconds)}</p>
-                                <p className={styles.mutedText}>Time Spent</p>
+                                <p className={styles.mutedText}>{t("profile.timeSpent")}</p>
                             </div>
                             <div>
                                 <p className={styles.statValue}>{profile.daysStreak}</p>
-                                <p className={styles.mutedText}>Day Streak</p>
+                                <p className={styles.mutedText}>{t("profile.dayStreak")}</p>
                             </div>
                         </div>
                     </div>
@@ -100,7 +102,7 @@ const ProfilePage = () => {
             </div>
 
             <div className={styles.card}>
-                <h2 className={styles.sectionTitle}>My Courses</h2>
+                <h2 className={styles.sectionTitle}>{t("profile.myCourses")}</h2>
                 {(profile.enrolledCourses ?? []).length > 0 ? (
                     <div className={styles.coursesList}>
                         {(profile.enrolledCourses ?? []).map((course) => (
@@ -118,7 +120,7 @@ const ProfilePage = () => {
                                 </div>
                                 <div className={styles.courseRowProgress}>
                                     <div className={styles.rowBetween}>
-                                        <span>Progress</span>
+                                        <span>{t("profile.progress")}</span>
                                         <span className={styles.mutedText}>
                                             {Math.round(course.percentage)}%
                                         </span>
@@ -135,23 +137,23 @@ const ProfilePage = () => {
                     </div>
                 ) : (
                     <p className={styles.mutedText}>
-                        You are not enrolled in any courses yet.{" "}
+                        {t("profile.notEnrolled")}{" "}
                         <Link to="/app/courses" className={styles.inlineLink}>
-                            Browse courses
+                            {t("profile.browseCourses")}
                         </Link>
                     </p>
                 )}
             </div>
 
             <div className={styles.card}>
-                <h2 className={styles.sectionTitle}>Learning Summary</h2>
+                <h2 className={styles.sectionTitle}>{t("profile.learningSummary")}</h2>
                 <div className={styles.summaryGrid}>
                     <div>
-                        <h3 className={styles.subHeading}>Current Progress</h3>
+                        <h3 className={styles.subHeading}>{t("profile.currentProgress")}</h3>
                         <div className={styles.stack}>
                             <div>
                                 <div className={styles.rowBetween}>
-                                    <span>Level</span>
+                                    <span>{t("profile.level")}</span>
                                     <span className={styles.mutedText}>{profile.level}</span>
                                 </div>
                                 <div className={styles.progressTrack}>
@@ -160,7 +162,7 @@ const ProfilePage = () => {
                             </div>
                             <div>
                                 <div className={styles.rowBetween}>
-                                    <span>Points</span>
+                                    <span>{t("profile.points")}</span>
                                     <span className={styles.mutedText}>{profile.totalPoints}</span>
                                 </div>
                                 <div className={styles.progressTrack}>
@@ -169,8 +171,8 @@ const ProfilePage = () => {
                             </div>
                             <div>
                                 <div className={styles.rowBetween}>
-                                    <span>Consistency</span>
-                                    <span className={styles.mutedText}>{profile.daysStreak} day streak</span>
+                                    <span>{t("profile.consistency")}</span>
+                                    <span className={styles.mutedText}>{t("profile.dayStreakValue", { count: profile.daysStreak })}</span>
                                 </div>
                                 <div className={styles.progressTrack}>
                                     <div className={styles.progressFill} style={{ width: `${Math.min(profile.daysStreak * 5, 100)}%` }}></div>
@@ -179,7 +181,7 @@ const ProfilePage = () => {
                         </div>
                     </div>
                     <div>
-                        <h3 className={styles.subHeading}>Recent Activity</h3>
+                        <h3 className={styles.subHeading}>{t("profile.recentActivity")}</h3>
                         <div className={styles.stack}>
                             {recentActivity.length > 0 ? (
                                 recentActivity.map((entry, index) => (
@@ -188,13 +190,13 @@ const ProfilePage = () => {
                                             className={`${styles.dot} ${index % 3 === 0 ? styles.dotSuccess : index % 3 === 1 ? styles.dotPrimary : styles.dotWarning}`}
                                         ></div>
                                         <div>
-                                            <p className={styles.itemTitle}>Spent {formatTimeSpent(entry.timeSpentSeconds)} learning</p>
-                                            <p className={styles.timeText}>{new Date(entry.date).toLocaleDateString()}</p>
+                                            <p className={styles.itemTitle}>{t("profile.spentLearning", { time: formatTimeSpent(entry.timeSpentSeconds) })}</p>
+                                            <p className={styles.timeText}>{new Date(entry.date).toLocaleDateString(locale)}</p>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <p className={styles.mutedText}>No activity yet.</p>
+                                <p className={styles.mutedText}>{t("profile.noActivity")}</p>
                             )}
                         </div>
                     </div>
@@ -202,7 +204,7 @@ const ProfilePage = () => {
             </div>
 
             <div className={styles.card}>
-                <h2 className={styles.sectionTitle}>Achievements</h2>
+                <h2 className={styles.sectionTitle}>{t("profile.achievements")}</h2>
                 <div className={styles.achievementsGrid}>
                     {profile.achievements.length > 0 ? profile.achievements.map((achievement, index) => {
                         const Icon = achievementIcons[index % achievementIcons.length];
@@ -224,7 +226,7 @@ const ProfilePage = () => {
                                 </div>
                             </div>
                         );
-                    }) : <p className={styles.mutedText}>No achievements unlocked yet.</p>}
+                    }) : <p className={styles.mutedText}>{t("profile.noAchievements")}</p>}
                 </div>
             </div>
         </div>

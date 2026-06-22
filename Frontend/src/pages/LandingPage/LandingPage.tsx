@@ -6,24 +6,24 @@ import Target from "../../assets/Icons/target.svg?react"
 import Lightning from "../../assets/Icons/lightning.svg?react"
 import Book from "../../assets/Icons/book.svg?react"
 import Slbreaks from "../../assets/Icons/slbreaks.svg?react"
+import { useLanguage } from "../../lib/LanguageContext";
 import styles from "./LandingPage.module.css";
 
 const LandingPage = () => {
+    const { t } = useLanguage();
     return (
         <div className={styles.page}>
             <nav className={styles.navbar}>
                 <div className={styles.navContent}>
                     <div className={styles.brand}>
-                        <div className={styles.logoContainer}>
-                            <img src={LogoBlueBackground} className={styles.logo} />
-                        </div>
+                        <img src={LogoBlueBackground} alt="Codary" className={styles.logo} />
                         <span className={styles.brandText}>CodeMentor AI</span>
                     </div>
                     <Link
                         to="/login"
                         className={styles.navLoginLink}
                     >
-                        Login
+                        {t("landing.login")}
                     </Link>
                 </div>
             </nav>
@@ -31,23 +31,23 @@ const LandingPage = () => {
             <section className={styles.heroSection}>
                 <div className={styles.heroContent}>
                     <h1 className={styles.heroTitle}>
-                        Learn Programming with AI-Powered Assistance
+                        {t("landing.heroTitle")}
                     </h1>
                     <p className={styles.heroDescription}>
-                        Master coding through interactive lessons, hands-on practice, and intelligent guidance. Your personal AI mentor is here to help you succeed.
+                        {t("landing.heroDescription")}
                     </p>
                     <div className={styles.heroActions}>
                         <Link
                             to="/register"
                             className={styles.primaryButton}
                         >
-                            Get Started
+                            {t("landing.getStarted")}
                         </Link>
                         <Link
                             to="/login"
                             className={styles.secondaryButton}
                         >
-                            Login
+                            {t("landing.login")}
                         </Link>
                     </div>
                 </div>
@@ -55,15 +55,15 @@ const LandingPage = () => {
 
             <section className={styles.featuresSection}>
                 <div className={styles.featuresContent}>
-                    <h2 className={styles.sectionTitle}>AI Assistance Features</h2>
+                    <h2 className={styles.sectionTitle}>{t("landing.featuresTitle")}</h2>
                     <div className={styles.featuresGrid}>
                         <div className={styles.featureCard}>
                             <div className={styles.featureIconContainer}>
                                 <Brain className={styles.featureIcon} />
                             </div>
-                            <h3 className={styles.featureTitle}>Smart Code Analysis</h3>
+                            <h3 className={styles.featureTitle}>{t("landing.feature1Title")}</h3>
                             <p className={styles.featureDescription}>
-                                Get instant feedback on your code with AI-powered analysis and suggestions for improvement.
+                                {t("landing.feature1Desc")}
                             </p>
                         </div>
 
@@ -71,9 +71,9 @@ const LandingPage = () => {
                             <div className={styles.featureIconContainer}>
                                 <Chat className={styles.featureIcon} />
                             </div>
-                            <h3 className={styles.featureTitle}>Interactive Q&A</h3>
+                            <h3 className={styles.featureTitle}>{t("landing.feature2Title")}</h3>
                             <p className={styles.featureDescription}>
-                                Ask questions anytime and get clear, contextual answers tailored to your learning level.
+                                {t("landing.feature2Desc")}
                             </p>
                         </div>
 
@@ -81,9 +81,9 @@ const LandingPage = () => {
                             <div className={styles.featureIconContainer}>
                                 <Target className={styles.featureIcon} />
                             </div>
-                            <h3 className={styles.featureTitle}>Personalized Hints</h3>
+                            <h3 className={styles.featureTitle}>{t("landing.feature3Title")}</h3>
                             <p className={styles.featureDescription}>
-                                Stuck on a problem? Get progressive hints that guide you without giving away the solution.
+                                {t("landing.feature3Desc")}
                             </p>
                         </div>
 
@@ -91,9 +91,9 @@ const LandingPage = () => {
                             <div className={styles.featureIconContainer}>
                                 <Lightning className={styles.featureIcon} />
                             </div>
-                            <h3 className={styles.featureTitle}>Real-time Error Detection</h3>
+                            <h3 className={styles.featureTitle}>{t("landing.feature4Title")}</h3>
                             <p className={styles.featureDescription}>
-                                Identify and fix errors quickly with AI assistance that understands your code context.
+                                {t("landing.feature4Desc")}
                             </p>
                         </div>
 
@@ -101,9 +101,9 @@ const LandingPage = () => {
                             <div className={styles.featureIconContainer}>
                                 <Book className={styles.featureIcon} />
                             </div>
-                            <h3 className={styles.featureTitle}>Structured Learning Path</h3>
+                            <h3 className={styles.featureTitle}>{t("landing.feature5Title")}</h3>
                             <p className={styles.featureDescription}>
-                                Follow a comprehensive curriculum designed to take you from beginner to advanced level.
+                                {t("landing.feature5Desc")}
                             </p>
                         </div>
 
@@ -111,9 +111,9 @@ const LandingPage = () => {
                             <div className={styles.featureIconContainer}>
                                 <Slbreaks className={styles.featureIcon} />
                             </div>
-                            <h3 className={styles.featureTitle}>Hands-on Practice</h3>
+                            <h3 className={styles.featureTitle}>{t("landing.feature6Title")}</h3>
                             <p className={styles.featureDescription}>
-                                Learn by doing with interactive coding exercises and real-world projects.
+                                {t("landing.feature6Desc")}
                             </p>
                         </div>
                     </div>
@@ -122,15 +122,15 @@ const LandingPage = () => {
 
             <section className={styles.ctaSection}>
                 <div className={styles.ctaContent}>
-                    <h2 className={styles.sectionTitle}>Ready to Start Your Coding Journey?</h2>
+                    <h2 className={styles.sectionTitle}>{t("landing.ctaTitle")}</h2>
                     <p className={styles.ctaDescription}>
-                        Join thousands of learners who are mastering programming with AI-powered assistance.
+                        {t("landing.ctaDescription")}
                     </p>
                     <Link
                         to="/register"
                         className={styles.primaryButton}
                     >
-                        Get Started Free
+                        {t("landing.getStartedFree")}
                     </Link>
                 </div>
             </section>

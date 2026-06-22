@@ -2,16 +2,19 @@ import { Link, useParams } from "react-router";
 import { useCallback, useEffect, useState } from "react";
 import Chevronleft from "../../assets/Icons/chevronleft.svg?react";
 import Lock from "../../assets/Icons/lock.svg?react";
+import Correct from "../../assets/Icons/correct.svg?react";
 import {
     enrollCourse,
     getCourseDetails,
     type CourseDetails,
     type CourseModuleStatus,
 } from "../../services/courses";
+import { useLanguage } from "../../lib/LanguageContext";
 import PageState from "../../components/PageState/PageState";
 import styles from "./CoursePage.module.css";
 
 const CoursePage = () => {
+    const { t } = useLanguage();
     const { courseId } = useParams();
     const [details, setDetails] = useState<CourseDetails | null>(null);
     const [loading, setLoading] = useState(true);
@@ -29,11 +32,11 @@ const CoursePage = () => {
             setDetails(data);
         } catch (err) {
             setDetails(null);
-            setError(err instanceof Error ? err.message : "Failed to load course.");
+            setError(err instanceof Error ? err.message : t("course.loadFailed"));
         } finally {
             setLoading(false);
         }
-    }, [courseId]);
+    }, [courseId, t]);
 
     useEffect(() => {
         loadCourse();
@@ -47,22 +50,22 @@ const CoursePage = () => {
             await enrollCourse(Number(courseId));
             await loadCourse();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Failed to enroll.");
+            setError(err instanceof Error ? err.message : t("course.enrollFailed"));
         } finally {
             setIsEnrolling(false);
         }
     };
 
     if (loading) {
-        return <PageState kind="loading" title="Loading course..." />;
+        return <PageState kind="loading" title={t("course.loading")} />;
     }
 
     if (error && !details) {
         return (
             <PageState
                 kind="error"
-                title="Course not found."
-                description={error || "Try opening another course from the list."}
+                title={t("course.notFound")}
+                description={error || t("course.notFoundDesc")}
             />
         );
     }
@@ -71,8 +74,8 @@ const CoursePage = () => {
         return (
             <PageState
                 kind="error"
-                title="Course not found."
-                description="Try opening another course from the list."
+                title={t("course.notFound")}
+                description={t("course.notFoundDesc")}
             />
         );
     }
@@ -84,11 +87,11 @@ const CoursePage = () => {
             <div className={styles.header}>
                 <Link to="/app/courses" className={styles.backLink}>
                     <Chevronleft className={styles.smallIcon} />
-                    Back to Courses
+                    {t("course.backToCourses")}
                 </Link>
                 <h1 className={styles.title}>{course.title}</h1>
                 <p className={styles.subtitle}>
-                    {course.description || "Complete modules in order to unlock the next ones."}
+                    {course.description || t("course.defaultDescription")}
                 </p>
                 <div className={styles.courseMeta}>
                     <span>{course.language}</span>
@@ -97,7 +100,7 @@ const CoursePage = () => {
                     {enrolled ? (
                         <>
                             <span>•</span>
-                            <span>{modules.length} modules</span>
+                            <span>{t("course.modulesCount", { count: modules.length })}</span>
                         </>
                     ) : null}
                 </div>
@@ -105,9 +108,9 @@ const CoursePage = () => {
 
             {!enrolled ? (
                 <div className={styles.enrollCard}>
-                    <h2 className={styles.enrollTitle}>Enroll to start learning</h2>
+                    <h2 className={styles.enrollTitle}>{t("course.enrollTitle")}</h2>
                     <p className={styles.enrollText}>
-                        Subscribe to this course to access modules, theory, quizzes, and practice tasks.
+                        {t("course.enrollText")}
                     </p>
                     <button
                         type="button"
@@ -115,14 +118,14 @@ const CoursePage = () => {
                         disabled={isEnrolling}
                         onClick={handleEnroll}
                     >
-                        {isEnrolling ? "Enrolling..." : "Enroll in Course"}
+                        {isEnrolling ? t("course.enrolling") : t("course.enroll")}
                     </button>
                 </div>
             ) : (
                 <>
                     <div className={styles.progressCard}>
                         <div className={styles.progressHeader}>
-                            <span className={styles.progressLabel}>Course progress</span>
+                            <span className={styles.progressLabel}>{t("course.progress")}</span>
                             <span className={styles.progressValue}>{Math.round(course.percentage)}%</span>
                         </div>
                         <div className={styles.progressTrack}>
@@ -135,7 +138,7 @@ const CoursePage = () => {
 
                     <div className={styles.moduleList}>
                         {modules.map((module, index) => (
-                            <ModuleCard key={module.id} module={module} index={index} />
+                            <ModuleCard key={module.id} module={module} index={index} t={t} />
                         ))}
                     </div>
                 </>
@@ -147,23 +150,28 @@ const CoursePage = () => {
 type ModuleCardProps = {
     module: CourseModuleStatus;
     index: number;
+    t: (key: string, vars?: Record<string, string | number>) => string;
 };
 
-const ModuleCard = ({ module, index }: ModuleCardProps) => {
+const ModuleCard = ({ module, index, t }: ModuleCardProps) => {
     const locked = module.isLocked;
+    // When the whole module is completed, only the module badge is shown.
+    // Per-part indicators appear only while the module is partially done.
+    const showQuizDone = module.quizCompleted && !module.isCompleted;
+    const showPracticeDone = module.taskCompleted && !module.isCompleted;
 
     return (
         <div className={`${styles.moduleCard} ${locked ? styles.moduleLocked : ""}`}>
             <div className={styles.moduleHeader}>
                 <div className={styles.moduleInfo}>
-                    <p className={styles.moduleIndex}>Module {index + 1}</p>
+                    <p className={styles.moduleIndex}>{t("course.module", { number: index + 1 })}</p>
                     <h3 className={styles.moduleTitle}>{module.title}</h3>
                     <p className={styles.moduleStatus}>
                         {locked
-                            ? "Locked"
+                            ? t("course.locked")
                             : module.isCompleted
-                              ? "Completed"
-                              : "In progress"}
+                              ? t("course.completed")
+                              : t("course.inProgress")}
                     </p>
                 </div>
                 {locked && (
@@ -172,7 +180,7 @@ const ModuleCard = ({ module, index }: ModuleCardProps) => {
                     </div>
                 )}
                 {module.isCompleted && !locked && (
-                    <span className={styles.completedBadge}>Done</span>
+                    <span className={styles.completedBadge}>{t("course.done")}</span>
                 )}
             </div>
 
@@ -182,33 +190,37 @@ const ModuleCard = ({ module, index }: ModuleCardProps) => {
                         to={`/app/theory/${module.id}`}
                         className={`${styles.moduleLink} ${styles.theoryLink}`}
                     >
-                        Theory
+                        {t("course.theory")}
                     </Link>
                     {module.quizId ? (
                         <Link
-                            to={`/app/quiz/${module.quizId}`}
-                            className={`${styles.moduleLink} ${styles.quizLink}`}
+                            to={`/app/quiz/${module.id}`}
+                            className={`${styles.moduleLink} ${styles.quizLink} ${showQuizDone ? styles.moduleLinkDone : ""}`}
+                            title={showQuizDone ? t("course.quizDone") : undefined}
                         >
-                            Quiz
+                            {showQuizDone && <Correct className={styles.linkDoneIcon} />}
+                            {t("course.quiz")}
                         </Link>
                     ) : (
-                        <span className={`${styles.moduleLink} ${styles.quizLink}`}>Quiz</span>
+                        <span className={`${styles.moduleLink} ${styles.quizLink}`}>{t("course.quiz")}</span>
                     )}
                     {module.taskId ? (
                         <Link
                             to={`/app/task/${module.taskId}`}
-                            className={`${styles.moduleLink} ${styles.practiceLink}`}
+                            className={`${styles.moduleLink} ${styles.practiceLink} ${showPracticeDone ? styles.moduleLinkDone : ""}`}
+                            title={showPracticeDone ? t("course.practiceDone") : undefined}
                         >
-                            Practice
+                            {showPracticeDone && <Correct className={styles.linkDoneIcon} />}
+                            {t("course.practice")}
                         </Link>
                     ) : (
-                        <span className={`${styles.moduleLink} ${styles.practiceLink}`}>Practice</span>
+                        <span className={`${styles.moduleLink} ${styles.practiceLink}`}>{t("course.practice")}</span>
                     )}
                 </div>
             )}
 
             {locked && (
-                <p className={styles.lockedHint}>Complete the previous module to unlock</p>
+                <p className={styles.lockedHint}>{t("course.lockedHint")}</p>
             )}
         </div>
     );

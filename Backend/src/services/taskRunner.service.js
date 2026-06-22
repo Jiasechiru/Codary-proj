@@ -6,7 +6,15 @@ const { getAdapter } = require("../adapters/adapter.factory");
 const {
   recomputeModuleCompletion,
   recomputeCourseProgress,
+  recordLearningActivity,
 } = require("./progress.service");
+
+// Estimated learning time credited per completed task, by difficulty.
+const TASK_TIME_SECONDS = {
+  easy: 10 * 60,
+  medium: 15 * 60,
+  hard: 25 * 60,
+};
 
 const STATUSES = {
   SUCCESS: "SUCCESS",
@@ -86,6 +94,12 @@ async function process(attemptId) {
   });
 
   if (isCorrect) {
+    const existingProgress = await prisma.userTaskProgress.findUnique({
+      where: { userId_taskId: { userId: attempt.userId, taskId: attempt.taskId } },
+      select: { isCompleted: true },
+    });
+    const firstCompletion = !existingProgress?.isCompleted;
+
     await prisma.userTaskProgress.upsert({
       where: { userId_taskId: { userId: attempt.userId, taskId: attempt.taskId } },
       create: {
@@ -100,14 +114,21 @@ async function process(attemptId) {
       },
     });
 
-    await prisma.user.update({
-      where: { id: attempt.userId },
-      data: { totalPoints: { increment: 10 } },
-    });
+    // Award points and learning activity only the first time a task is solved,
+    // so re-submitting an already-completed task does not inflate statistics.
+    if (firstCompletion) {
+      await prisma.user.update({
+        where: { id: attempt.userId },
+        data: { totalPoints: { increment: 10 } },
+      });
 
-    await prisma.pointsHistory.create({
-      data: { userId: attempt.userId, delta: 10 },
-    });
+      await prisma.pointsHistory.create({
+        data: { userId: attempt.userId, delta: 10 },
+      });
+
+      const seconds = TASK_TIME_SECONDS[task.difficulty] ?? TASK_TIME_SECONDS.medium;
+      await recordLearningActivity(attempt.userId, seconds);
+    }
 
     await recomputeModuleCompletion(attempt.userId, task.moduleId);
     await recomputeCourseProgress(attempt.userId, task.module.courseId);

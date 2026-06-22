@@ -25,19 +25,11 @@
   margin-bottom: 1rem;
 }
 
-.logoContainer {
+.logo {
   width: 2.5rem;
   height: 2.5rem;
-  background: var(--primary);
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.logo {
-  width: 1.5rem;
-  height: 1.5rem;
+  display: block;
+  flex-shrink: 0;
 }
 
 .brandText {
@@ -58,7 +50,7 @@
 
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: 0.5rem;
   padding: 2rem;
   min-width: 0;
@@ -90,7 +82,7 @@
   min-width: 0;
   padding: 0.5rem 1rem;
   background: var(--input-background);
-  border: 1px solid var(--input);
+  border: var(--border-width) solid var(--input);
   border-radius: 0.5rem;
   color: var(--foreground);
 }

@@ -25,7 +25,7 @@ function buildTestScript(userCode, codeTests) {
         `  } else {\n` +
         `    console.log("FAIL: got=" + result + " expected=" + expected);\n` +
         `  }\n` +
-        `})()`
+        `})();`
       );
     })
     .join("\n");

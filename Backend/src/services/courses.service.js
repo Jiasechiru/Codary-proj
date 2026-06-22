@@ -105,13 +105,13 @@ async function getCourseDetails(userId, courseId) {
     };
   }
 
-  const [modules, moduleProgress] = await Promise.all([
+  const [modules, moduleProgress, completedTaskRows, completedQuizRows] = await Promise.all([
     prisma.module.findMany({
       where: { courseId },
       orderBy: { orderIndex: "asc" },
       include: {
-        tasks: { select: { id: true }, take: 1, orderBy: { id: "asc" } },
-        quizzes: { select: { id: true }, take: 1, orderBy: { id: "asc" } },
+        tasks: { select: { id: true }, orderBy: { id: "asc" } },
+        quizzes: { select: { id: true }, orderBy: { id: "asc" } },
       },
     }),
     prisma.userModuleProgress.findMany({
@@ -120,15 +120,32 @@ async function getCourseDetails(userId, courseId) {
         module: { courseId },
       },
     }),
+    prisma.userTaskProgress.findMany({
+      where: { userId, isCompleted: true, task: { module: { courseId } } },
+      select: { taskId: true },
+    }),
+    prisma.userQuizProgress.findMany({
+      where: { userId, isCompleted: true, quiz: { module: { courseId } } },
+      select: { quizId: true },
+    }),
   ]);
 
   const progressMap = new Map(
     moduleProgress.map((item) => [item.moduleId, item.isCompleted])
   );
+  const completedTaskIds = new Set(completedTaskRows.map((row) => row.taskId));
+  const completedQuizIds = new Set(completedQuizRows.map((row) => row.quizId));
 
   const modulesWithStatus = modules.map((module, index) => {
     const isCompleted = progressMap.get(module.id) || false;
     const isLocked = index > 0 && !progressMap.get(modules[index - 1].id);
+
+    const taskIds = module.tasks.map((t) => t.id);
+    const quizIds = module.quizzes.map((q) => q.id);
+    const taskCompleted =
+      taskIds.length > 0 && taskIds.every((id) => completedTaskIds.has(id));
+    const quizCompleted =
+      quizIds.length > 0 && quizIds.every((id) => completedQuizIds.has(id));
 
     return {
       id: module.id,
@@ -138,6 +155,8 @@ async function getCourseDetails(userId, courseId) {
       isLocked,
       quizId: module.quizzes[0]?.id ?? null,
       taskId: module.tasks[0]?.id ?? null,
+      quizCompleted,
+      taskCompleted,
     };
   });
 

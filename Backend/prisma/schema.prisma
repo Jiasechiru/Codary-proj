@@ -25,6 +25,7 @@ model User {
   pointsHistory    PointsHistory[]
   activityHistory  ActivityHistory[]
   achievements     UserAchievement[]
+  dailyChallenges  UserDailyChallenge[]
   createdAt        DateTime           @default(now()) @map("created_at")
   updatedAt        DateTime           @updatedAt @map("updated_at")
 
@@ -71,10 +72,11 @@ model Module {
 }
 
 model Theory {
-  id        Int    @id @default(autoincrement())
-  moduleId  Int    @unique @map("module_id")
-  content   String
-  module    Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  id         Int     @id @default(autoincrement())
+  moduleId   Int     @unique @map("module_id")
+  content    String
+  contentRu  String? @map("content_ru")
+  module     Module  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
 
   @@map("theories")
 }
@@ -84,9 +86,12 @@ model Task {
   moduleId         Int                @map("module_id")
   title            String
   description      String
+  descriptionRu    String?            @map("description_ru")
   starterCode      String             @map("starter_code")
   solutionCode     String             @map("solution_code")
   difficulty       String
+  requirements     Json?
+  requirementsRu   Json?              @map("requirements_ru")
   module           Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   codeTests        CodeTest[]
   attempts         Attempt[]
@@ -110,6 +115,7 @@ model Quiz {
   id              Int                @id @default(autoincrement())
   moduleId        Int                @map("module_id")
   question        String
+  questionRu      String?            @map("question_ru")
   answerVariants  Json               @map("answer_variants")
   correctAnswer   String             @map("correct_answer")
   module          Module             @relation(fields: [moduleId], references: [id], onDelete: Cascade)
@@ -183,11 +189,13 @@ model UserProgress {
 }
 
 model GlobalAIChat {
-  id        Int               @id @default(autoincrement())
-  userId    Int               @map("user_id")
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  messages  GlobalAIMessage[]
+  id                    Int               @id @default(autoincrement())
+  userId                Int               @map("user_id")
+  contextAfterMessageId Int?              @map("context_after_message_id")
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages              GlobalAIMessage[]
 
+  @@unique([userId])
   @@map("global_ai_chats")
 }
 
@@ -272,4 +280,34 @@ model UserAchievement {
 
   @@unique([userId, achievementId])
   @@map("user_achievements")
+}
+
+// Standalone "task of the day". Intentionally NOT linked to courses, modules
+// or theory: each daily challenge is fully self-contained.
+model DailyChallenge {
+  id           Int                  @id @default(autoincrement())
+  title        String
+  description  String
+  language     String
+  difficulty   String               @default("medium")
+  starterCode  String               @map("starter_code")
+  solutionCode String               @map("solution_code")
+  tests        Json
+  createdAt    DateTime             @default(now()) @map("created_at")
+  completions  UserDailyChallenge[]
+
+  @@map("daily_challenges")
+}
+
+model UserDailyChallenge {
+  id               Int            @id @default(autoincrement())
+  userId           Int            @map("user_id")
+  dailyChallengeId Int            @map("daily_challenge_id")
+  date             DateTime
+  completedAt      DateTime       @default(now()) @map("completed_at")
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dailyChallenge   DailyChallenge @relation(fields: [dailyChallengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("user_daily_challenges")
 }
