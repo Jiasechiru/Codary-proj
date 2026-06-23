@@ -28,7 +28,7 @@ export const translations: Record<Language, Dict> = {
 
     // Landing
     "landing.login": "Войти",
-    "landing.heroTitle": "Учитесь программировать с помощью ИИ",
+    "landing.heroTitle": "Учитесь программировать вместе с ИИ-ассистентом",
     "landing.heroDescription":
       "Осваивайте программирование через интерактивные уроки, практику и умные подсказки. Ваш персональный ИИ-наставник поможет добиться успеха.",
     "landing.getStarted": "Начать",

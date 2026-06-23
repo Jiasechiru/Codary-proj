@@ -41,7 +41,7 @@ const RegPage = () => {
                 <div className={styles.header}>
                     <div className={styles.brand}>
                         <img src={LogoBlueBackground} alt="Codary" className={styles.logo} />
-                        <span className={styles.brandText}>CodeMentor AI</span>
+                        <span className={styles.brandText}>Codary</span>
                     </div>
                     <h1 className={styles.title}>{t("reg.title")}</h1>
                     <p className={styles.subtitle}>{t("reg.subtitle")}</p>

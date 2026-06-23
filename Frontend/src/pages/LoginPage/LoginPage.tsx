@@ -34,7 +34,7 @@ const LoginPage = () => {
                 <div className={styles.header}>
                     <div className={styles.brand}>
                         <img src={LogoBlueBackground} alt="Codary" className={styles.logo} />
-                        <span className={styles.brandText}>CodeMentor AI</span>
+                        <span className={styles.brandText}>Codary</span>
                     </div>
                     <h1 className={styles.title}>{t("login.welcome")}</h1>
                     <p className={styles.subtitle}>{t("login.subtitle")}</p>

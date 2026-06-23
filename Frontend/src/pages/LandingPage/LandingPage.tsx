@@ -17,7 +17,7 @@ const LandingPage = () => {
                 <div className={styles.navContent}>
                     <div className={styles.brand}>
                         <img src={LogoBlueBackground} alt="Codary" className={styles.logo} />
-                        <span className={styles.brandText}>CodeMentor AI</span>
+                        <span className={styles.brandText}>Codary</span>
                     </div>
                     <Link
                         to="/login"
